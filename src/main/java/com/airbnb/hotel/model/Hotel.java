@@ -37,6 +37,7 @@ public class Hotel {
 	private Status status;
 	private User user;
 	private List<Room> rooms;
+	private List<Hotel_Amenities> hotelAmenities;
 	private String createdBy;
 	private String updatedBy;
 	private LocalDateTime createdAt;
@@ -116,6 +117,14 @@ public class Hotel {
 	}
 	public void setRooms(List<Room> rooms) {
 		this.rooms = rooms;
+	}
+	@OneToMany(mappedBy = "hotelId",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+	@JsonManagedReference
+	public List<Hotel_Amenities> getHotelAmenities() {
+		return hotelAmenities;
+	}
+	public void setHotelAmenities(List<Hotel_Amenities> hotelAmenities) {
+		this.hotelAmenities = hotelAmenities;
 	}
 	@Column(name ="C_Created_By")
 	public String getCreatedBy() {
