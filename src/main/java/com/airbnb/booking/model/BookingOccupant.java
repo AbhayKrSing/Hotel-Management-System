@@ -1,8 +1,8 @@
 package com.airbnb.booking.model;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.airbnb.common.AuditableEntry;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
@@ -14,7 +14,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name ="fr_booking_occupants")
-public class BookingOccupant {
+public class BookingOccupant extends AuditableEntry {
    private UUID id;
    private Booking booking;
    private String fullName;
@@ -22,8 +22,6 @@ public class BookingOccupant {
    private Integer age;
    private String idProofNumber;
    private String idProofType;
-   private LocalDateTime createdAt;
-   private String createdBy;
    
    @Id
    @Column(name ="C_Booking_Occupant_Id",nullable = false)
@@ -80,21 +78,6 @@ public class BookingOccupant {
    }
    public void setIdProofType(String idProofType) {
 	this.idProofType = idProofType;
-   }
-   @Column(name ="Dt_Created_At")
-   public LocalDateTime getCreatedAt() {
-	return createdAt;
-   }
-   public void setCreatedAt(LocalDateTime createdAt) {
-	this.createdAt = createdAt;
-   }
-   
-   @Column(name ="C_Created_By")
-   public String getCreatedBy() {
-	return createdBy;
-   }
-   public void setCreatedBy(String createdBy) {
-	this.createdBy = createdBy;
    }
    
 }

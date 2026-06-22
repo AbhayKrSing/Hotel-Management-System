@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.airbnb.booking.model.BookingRoom;
+import com.airbnb.common.FullyAuditableEntity;
 import com.airbnb.hotel.enums.Status;
 import com.airbnb.photo.model.Photo;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -26,7 +27,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name ="fr_room_master")
-public class Room {
+public class Room extends FullyAuditableEntity {
 
 	private UUID id;
 	private Hotel hotel;
@@ -40,10 +41,6 @@ public class Room {
 	private BigDecimal pricePerNight;
 	private Inventory inventory;
 	private List<BookingRoom> bookingRooms;
-	private String createdBy;
-	private String updatedBy;
-	private LocalDateTime createdAt;
-	private LocalDateTime updatedAt;
 	
 	@Id
 	@Column(name= "C_Room_Id")
@@ -144,34 +141,6 @@ public class Room {
 	}
 	public void setBookingRooms(List<BookingRoom> bookingRooms) {
 		this.bookingRooms = bookingRooms;
-	}
-	@Column(name ="C_Created_By")
-	public String getCreatedBy() {
-		return createdBy;
-	}
-	public void setCreatedBy(String createdBy) {
-		this.createdBy = createdBy;
-	}
-	@Column(name ="C_Updated_By")
-	public String getUpdatedBy() {
-		return updatedBy;
-	}
-	public void setUpdatedBy(String updatedBy) {
-		this.updatedBy = updatedBy;
-	}
-	@Column(name = "Dt_Created_At")
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
-	@Column(name ="Dt_Updated_At")
-	public LocalDateTime getUpdatedAt() {
-		return updatedAt;
-	}
-	public void setUpdatedAt(LocalDateTime updatedAt) {
-		this.updatedAt = updatedAt;
 	}
 	
  }

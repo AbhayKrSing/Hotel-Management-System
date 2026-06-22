@@ -2,6 +2,7 @@ package com.airbnb.photo.model;
 
 import java.util.UUID;
 
+import com.airbnb.common.AuditableEntry;
 import com.airbnb.hotel.model.Hotel;
 import com.airbnb.hotel.model.Room;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -15,7 +16,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name ="fr_store_photo")
-public class Photo {
+public class Photo extends AuditableEntry {
   private UUID id;
   private Room roomId;
   private Hotel hotelId;

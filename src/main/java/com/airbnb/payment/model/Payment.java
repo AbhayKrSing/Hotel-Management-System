@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.airbnb.booking.model.Booking;
+import com.airbnb.common.AuditableEntry;
 import com.airbnb.payment.enums.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -18,13 +19,12 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name ="fr_payment_booking")
-public class Payment {
+public class Payment extends AuditableEntry {
 private UUID id;
 private String transactionId;
 private PaymentStatus paymentStatus;
 private Booking booking;
 private LocalDateTime paidAt;
-private LocalDateTime createdAt;
 
 @Id
 @Column(name="C_Payment_Id")
@@ -61,17 +61,13 @@ public Booking getBooking() {
 public void setBooking(Booking booking) {
 	this.booking = booking;
 }
+
+@Column(name ="Dt_Paid_At")
 public LocalDateTime getPaidAt() {
 	return paidAt;
 }
 public void setPaidAt(LocalDateTime paidAt) {
 	this.paidAt = paidAt;
-}
-public LocalDateTime getCreatedAt() {
-	return createdAt;
-}
-public void setCreatedAt(LocalDateTime createdAt) {
-	this.createdAt = createdAt;
 }
 
 

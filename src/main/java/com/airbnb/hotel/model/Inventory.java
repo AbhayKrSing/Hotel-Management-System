@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.UUID;
 
+import com.airbnb.common.FullyAuditableEntity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
@@ -15,7 +16,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "fr_room_inventory")
-public class Inventory {
+public class Inventory extends FullyAuditableEntity {
    private UUID id;
    private Date date;
    private Integer availableUnits;

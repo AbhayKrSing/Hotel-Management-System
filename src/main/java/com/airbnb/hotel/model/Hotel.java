@@ -1,10 +1,10 @@
 package com.airbnb.hotel.model;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 import com.airbnb.booking.model.Booking;
+import com.airbnb.common.FullyAuditableEntity;
 import com.airbnb.hotel.enums.Status;
 import com.airbnb.message.model.GuestReview;
 import com.airbnb.photo.model.Photo;
@@ -28,7 +28,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name ="fr_hotel_master")
-public class Hotel {
+public class Hotel extends FullyAuditableEntity {
 
 	private UUID id;
 	private String name;
@@ -42,10 +42,6 @@ public class Hotel {
 	private List<Hotel_Amenities> hotelAmenities;
 	private List<Booking> bookings;
 	private List<GuestReview> guestReviews;
-	private String createdBy;
-	private String updatedBy;
-	private LocalDateTime createdAt;
-	private LocalDateTime updateAt;
 	
 	@Id
 	@Column(name ="C_Hotel_Id",nullable = false)
@@ -147,33 +143,5 @@ public class Hotel {
 	}
 	public void setGuestReviews(List<GuestReview> guestReviews) {
 		this.guestReviews = guestReviews;
-	}
-	@Column(name ="C_Created_By")
-	public String getCreatedBy() {
-		return createdBy;
-	}
-	public void setCreatedBy(String createdBy) {
-		this.createdBy = createdBy;
-	}
-	 @Column(name ="C_Updated_By")
-	public String getUpdatedBy() {
-		return updatedBy;
-	}
-	public void setUpdatedBy(String updatedBy) {
-		this.updatedBy = updatedBy;
-	}
-	@Column(name = "Dt_Created_At")
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
-	 @Column(name ="Dt_Updated_At")
-	public LocalDateTime getUpdateAt() {
-		return updateAt;
-	}
-	public void setUpdateAt(LocalDateTime updateAt) {
-		this.updateAt = updateAt;
 	}
 }

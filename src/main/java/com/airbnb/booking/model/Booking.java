@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.airbnb.booking.enums.BookingStatus;
+import com.airbnb.common.FullyAuditableEntity;
 import com.airbnb.hotel.model.Hotel;
 import com.airbnb.payment.model.Payment;
 import com.airbnb.user.model.User;
@@ -26,7 +27,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name ="fr_booking")
-public class Booking {
+public class Booking extends FullyAuditableEntity {
   private UUID id;
   private User user; //Must be Guest Id
   private Hotel hotel;
@@ -38,10 +39,7 @@ public class Booking {
   private List<BookingRoom> bookingRooms;
   private List<BookingOccupant> bookingOccupants;
   private List<Payment> payments;
-  private LocalDateTime createdAt;
-  private LocalDateTime updatedAt;
-  private String createdBy; //Only Guest
-  private String updatedBy;
+
   
   @Id
   @Column(name ="C_Booking_Id",nullable = false)
@@ -138,34 +136,6 @@ public class Booking {
   }
   public void setPayments(List<Payment> payments) {
 	this.payments = payments;
-  }
-  @Column(name = "Dt_Created_At")
-  public LocalDateTime getCreatedAt() {
-	return createdAt;
-  }
-  public void setCreatedAt(LocalDateTime createdAt) {
-	this.createdAt = createdAt;
-  }
-  @Column(name ="Dt_Updated_At")
-  public LocalDateTime getUpdatedAt() {
-	return updatedAt;
-  }
-  public void setUpdatedAt(LocalDateTime updatedAt) {
-	this.updatedAt = updatedAt;
-  }
-  @Column(name ="C_Created_By")
-  public String getCreatedBy() {
-	return createdBy;
-  }
-  public void setCreatedBy(String createdBy) {
-	this.createdBy = createdBy;
-  }
-  @Column(name ="C_Updated_By")
-  public String getUpdatedBy() {
-	return updatedBy;
-  }
-  public void setUpdatedBy(String updatedBy) {
-	this.updatedBy = updatedBy;
   }
   
 }

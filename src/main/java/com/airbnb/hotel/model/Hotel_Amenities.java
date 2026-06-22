@@ -2,6 +2,7 @@ package com.airbnb.hotel.model;
 
 import java.util.UUID;
 
+import com.airbnb.common.FullyAuditableEntity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
@@ -13,7 +14,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name ="fr_hotel_amenities")
-public class Hotel_Amenities {
+public class Hotel_Amenities extends FullyAuditableEntity {
 
 	private UUID id;
 	private Hotel hotelId;

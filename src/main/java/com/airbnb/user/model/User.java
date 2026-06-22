@@ -1,11 +1,12 @@
 package com.airbnb.user.model;
 
-import java.time.LocalDateTime;
+
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import com.airbnb.booking.model.Booking;
+import com.airbnb.common.FullyAuditableEntity;
 import com.airbnb.hotel.model.Hotel;
 import com.airbnb.message.model.GuestReview;
 import com.airbnb.user.enums.Roles;
@@ -19,30 +20,27 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name ="fr_user_master")
-public class User {
+public class User extends FullyAuditableEntity {
 	
  private UUID id;
  private Set<Roles> roles;
  private String email;
  private String name;
  private String password;
- private String createdBy;
- private String updatedBy;
  private List<Hotel> hotels;
  private List<Booking> bookings;
  private List<GuestReview> guestReviews; //Only for Guest
- private LocalDateTime createdAt;
- private LocalDateTime updateAt;
- 
  @Id
+ @GeneratedValue(strategy = GenerationType.UUID)
  @Column(name="C_User_Id",nullable = false)
  public UUID getId() {
 	return id;
@@ -62,7 +60,7 @@ public class User {
 	this.roles = roles;
  }
  
- @Column(name ="C_Email",unique = true)
+ @Column(name ="C_Email",unique = true,nullable = false)
  public String getEmail() {
 	return email;
  }
@@ -109,36 +107,6 @@ public class User {
 }
  public void setGuestReviews(List<GuestReview> guestReviews) {
 	this.guestReviews = guestReviews;
- }
- @Column(name ="C_Created_By")
- public String getCreatedBy() {
-	return createdBy;
- }
- public void setCreatedBy(String createdBy) {
-	this.createdBy = createdBy;
- }
- 
- @Column(name ="C_Updated_By")
- public String getUpdatedBy() {
-	return updatedBy;
- }
- public void setUpdatedBy(String updatedBy) {
-	this.updatedBy = updatedBy;
- }
- 
- @Column(name = "Dt_Created_At")
- public LocalDateTime getCreatedAt() {
-	return createdAt;
- }
- public void setCreatedAt(LocalDateTime createdAt) {
-	this.createdAt = createdAt;
- }
- @Column(name ="Dt_Updated_At")
- public LocalDateTime getUpdateAt() {
-	return updateAt;
- }
- public void setUpdateAt(LocalDateTime updateAt) {
-	this.updateAt = updateAt;
  }
  
  
