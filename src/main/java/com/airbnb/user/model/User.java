@@ -5,7 +5,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.airbnb.booking.model.Booking;
 import com.airbnb.hotel.model.Hotel;
+import com.airbnb.message.model.GuestReview;
 import com.airbnb.user.enums.Roles;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
@@ -20,6 +22,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -34,6 +37,8 @@ public class User {
  private String createdBy;
  private String updatedBy;
  private List<Hotel> hotels;
+ private List<Booking> bookings;
+ private List<GuestReview> guestReviews; //Only for Guest
  private LocalDateTime createdAt;
  private LocalDateTime updateAt;
  
@@ -89,6 +94,22 @@ public class User {
 	this.hotels = hotels;
  }
  
+ @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+ @JsonManagedReference
+ public List<Booking> getBookings() {
+	return bookings;
+}
+ public void setBookings(List<Booking> bookings) {
+	this.bookings = bookings;
+ }
+ @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+ @JsonManagedReference
+ public List<GuestReview> getGuestReviews() {
+	return guestReviews;
+}
+ public void setGuestReviews(List<GuestReview> guestReviews) {
+	this.guestReviews = guestReviews;
+ }
  @Column(name ="C_Created_By")
  public String getCreatedBy() {
 	return createdBy;

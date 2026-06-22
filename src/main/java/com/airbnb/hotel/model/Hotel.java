@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.airbnb.booking.model.Booking;
 import com.airbnb.hotel.enums.Status;
+import com.airbnb.message.model.GuestReview;
 import com.airbnb.photo.model.Photo;
 import com.airbnb.user.model.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -38,6 +40,8 @@ public class Hotel {
 	private User user;
 	private List<Room> rooms;
 	private List<Hotel_Amenities> hotelAmenities;
+	private List<Booking> bookings;
+	private List<GuestReview> guestReviews;
 	private String createdBy;
 	private String updatedBy;
 	private LocalDateTime createdAt;
@@ -125,6 +129,24 @@ public class Hotel {
 	}
 	public void setHotelAmenities(List<Hotel_Amenities> hotelAmenities) {
 		this.hotelAmenities = hotelAmenities;
+	}
+	
+	@OneToMany(mappedBy = "hotel",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+	@JsonManagedReference
+	public List<Booking> getBookings() {
+		return bookings;
+	}
+	public void setBookings(List<Booking> bookings) {
+		this.bookings = bookings;
+	}
+	
+	@OneToMany(mappedBy = "hotel",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+	@JsonManagedReference
+	public List<GuestReview> getGuestReviews() {
+		return guestReviews;
+	}
+	public void setGuestReviews(List<GuestReview> guestReviews) {
+		this.guestReviews = guestReviews;
 	}
 	@Column(name ="C_Created_By")
 	public String getCreatedBy() {
