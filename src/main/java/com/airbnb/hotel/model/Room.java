@@ -18,6 +18,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -39,10 +41,11 @@ public class Room extends FullyAuditableEntity {
 	private Status status;
 	private Integer noOfUnits;
 	private BigDecimal pricePerNight;
-	private Inventory inventory;
+	private List<Inventory> inventories;
 	private List<BookingRoom> bookingRooms;
 	
 	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
 	@Column(name= "C_Room_Id")
 	public UUID getId() {
 		return id;
@@ -125,13 +128,13 @@ public class Room extends FullyAuditableEntity {
 	public void setPricePerNight(BigDecimal pricePerNight) {
 		this.pricePerNight = pricePerNight;
 	}
-    @OneToOne(mappedBy = "room",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "room",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
     @JsonManagedReference
-	public Inventory getInventory() {
-		return inventory;
+	public List<Inventory> getInventories() {
+		return inventories;
 	}
-	public void setInventory(Inventory inventory) {
-		this.inventory = inventory;
+	public void setInventories(List<Inventory> inventories) {
+		this.inventories = inventories;
 	}
 	
 	@OneToMany(mappedBy = "room",cascade = CascadeType.ALL,fetch = FetchType.LAZY)

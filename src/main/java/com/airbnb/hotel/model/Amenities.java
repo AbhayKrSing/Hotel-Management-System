@@ -10,6 +10,8 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -21,10 +23,11 @@ public class Amenities {
   private UUID id;
   private String amenity;
   private String icon;
-  private List<Hotel_Amenities> hotelAmenties;
+  private List<HotelAmenities> hotelAmenties;
   
   
   @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name ="C_Amenity_Id")
   public UUID getId() {
 	return id;
@@ -50,10 +53,10 @@ public class Amenities {
   }
   @OneToMany(mappedBy = "amenityId",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
   @JsonManagedReference
-  public List<Hotel_Amenities> getHotelAmenties() {
+  public List<HotelAmenities> getHotelAmenties() {
 	return hotelAmenties;
   }
-  public void setHotelAmenties(List<Hotel_Amenities> hotelAmenties) {
+  public void setHotelAmenties(List<HotelAmenities> hotelAmenties) {
 	this.hotelAmenties = hotelAmenties;
   }
   

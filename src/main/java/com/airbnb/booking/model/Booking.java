@@ -8,6 +8,7 @@ import java.util.UUID;
 import com.airbnb.booking.enums.BookingStatus;
 import com.airbnb.common.FullyAuditableEntity;
 import com.airbnb.hotel.model.Hotel;
+import com.airbnb.message.model.GuestReview;
 import com.airbnb.payment.model.Payment;
 import com.airbnb.user.model.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -19,10 +20,13 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -39,9 +43,11 @@ public class Booking extends FullyAuditableEntity {
   private List<BookingRoom> bookingRooms;
   private List<BookingOccupant> bookingOccupants;
   private List<Payment> payments;
+  private GuestReview guestReview;
 
   
   @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name ="C_Booking_Id",nullable = false)
   public UUID getId() {
 	return id;
@@ -93,7 +99,7 @@ public class Booking extends FullyAuditableEntity {
 	this.totalPrice = totalPrice;
   }
   
-  @Column(name ="C_Guest_Count")
+  @Column(name ="N_Guest_Count")
   public Integer getGuestCount() {
 	return guestCount;
   }
@@ -136,6 +142,15 @@ public class Booking extends FullyAuditableEntity {
   }
   public void setPayments(List<Payment> payments) {
 	this.payments = payments;
+  }
+  
+  @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+  @JsonManagedReference
+  public GuestReview getGuestReview() {
+	return guestReview;
+  }
+  public void setGuestReview(GuestReview guestReview) {
+	this.guestReview = guestReview;
   }
   
 }

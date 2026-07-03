@@ -9,6 +9,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -23,6 +25,7 @@ public class Photo extends AuditableEntry {
   private String photoUrl;
   
   @Id
+  @GeneratedValue(strategy = GenerationType.UUID)
   @Column(name = "C_Photo_Id",nullable = false)
   public UUID getId() {
 	return id;

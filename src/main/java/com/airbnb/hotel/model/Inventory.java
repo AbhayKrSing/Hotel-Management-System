@@ -9,13 +9,18 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "fr_room_inventory")
+@Table(name = "fr_room_inventory", uniqueConstraints = {
+		@UniqueConstraint(columnNames = {"C_Room_Id", "Dt_Date"})
+})
 public class Inventory extends FullyAuditableEntity {
    private UUID id;
    private Date date;
@@ -24,6 +29,7 @@ public class Inventory extends FullyAuditableEntity {
    private BigDecimal pricePerNight;
    
    @Id
+   @GeneratedValue(strategy = GenerationType.UUID)
    @Column(name = "C_Inventory_Id")
    public UUID getId() {
 	return id;
@@ -47,7 +53,7 @@ public class Inventory extends FullyAuditableEntity {
 	this.availableUnits = availableUnits;
    }
    
-   @OneToOne
+   @ManyToOne
    @JsonBackReference
    @JoinColumn(name ="C_Room_Id")
    public Room getRoom() {

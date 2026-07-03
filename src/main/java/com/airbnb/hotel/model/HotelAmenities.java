@@ -7,6 +7,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -14,13 +16,14 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name ="fr_hotel_amenities")
-public class Hotel_Amenities extends FullyAuditableEntity {
+public class HotelAmenities extends FullyAuditableEntity {
 
 	private UUID id;
 	private Hotel hotelId;
 	private Amenities amenityId;
 	
 	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
 	@Column(name ="C_Hotel_Amenties_Id")
 	public UUID getId() {
 		return id;

@@ -1,5 +1,5 @@
 package com.airbnb.user.dto;
 
-public class UserDTO {
+public class RegisterRequest {
 
 }

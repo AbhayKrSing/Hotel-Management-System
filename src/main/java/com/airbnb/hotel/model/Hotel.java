@@ -20,6 +20,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -39,11 +41,12 @@ public class Hotel extends FullyAuditableEntity {
 	private Status status;
 	private User user;
 	private List<Room> rooms;
-	private List<Hotel_Amenities> hotelAmenities;
+	private List<HotelAmenities> hotelAmenities;
 	private List<Booking> bookings;
 	private List<GuestReview> guestReviews;
 	
 	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
 	@Column(name ="C_Hotel_Id",nullable = false)
 	public UUID getId() {
 		return id;
@@ -120,10 +123,10 @@ public class Hotel extends FullyAuditableEntity {
 	}
 	@OneToMany(mappedBy = "hotelId",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
 	@JsonManagedReference
-	public List<Hotel_Amenities> getHotelAmenities() {
+	public List<HotelAmenities> getHotelAmenities() {
 		return hotelAmenities;
 	}
-	public void setHotelAmenities(List<Hotel_Amenities> hotelAmenities) {
+	public void setHotelAmenities(List<HotelAmenities> hotelAmenities) {
 		this.hotelAmenities = hotelAmenities;
 	}
 	
