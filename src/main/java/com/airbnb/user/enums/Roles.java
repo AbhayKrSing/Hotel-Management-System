@@ -2,9 +2,9 @@ package com.airbnb.user.enums;
 
 
 public enum Roles {
-   ADMIN("Admin"),
-   HOST("Host"),
-   GUEST("Guest");
+   ADMIN("ADMIN"),
+   HOST("HOST"),
+   GUEST("GUEST");
    
    private String displayName;
    Roles(String name) {
