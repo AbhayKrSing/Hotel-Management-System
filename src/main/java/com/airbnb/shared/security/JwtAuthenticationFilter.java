@@ -13,8 +13,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.airbnb.user.client.UserClient;
 import com.airbnb.user.dto.UserDTO;
-import com.airbnb.user.service.UserService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -27,11 +27,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private String apiVersion;
 
     private final JwtUtil jwtUtil;
-    private final UserService userService;
+    private final UserClient userClient;
     
-    JwtAuthenticationFilter(JwtUtil jwtUtil,UserService userService){
+    JwtAuthenticationFilter(JwtUtil jwtUtil,UserClient userClient){
     	this.jwtUtil=jwtUtil;
-    	this.userService=userService;
+    	this.userClient=userClient;
     }
 
     @Override
@@ -79,7 +79,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 // Load user from database (via cross-module interface)
-                UserDTO userDTO = userService.getUserByEmail(userEmail);
+                UserDTO userDTO = userClient.getUserByEmail(userEmail);
 
                 if (userDTO == null) {
                     filterChain.doFilter(request, response);

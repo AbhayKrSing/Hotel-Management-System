@@ -43,9 +43,9 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                         // Role-based endpoints
-                        .requestMatchers("/api/admin/**").hasRole(Roles.ADMIN.getDisplayName())
-                        .requestMatchers("/api/host/**").hasAnyRole(Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
-                        .requestMatchers("/api/guest/**").hasAnyRole(Roles.GUEST.getDisplayName(),Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/admin/**").hasRole(Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/host/**").hasAnyRole(Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/guest/**").hasAnyRole(Roles.GUEST.getDisplayName(),Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
 
                         // All other requests need authentication
                         .anyRequest().authenticated()
