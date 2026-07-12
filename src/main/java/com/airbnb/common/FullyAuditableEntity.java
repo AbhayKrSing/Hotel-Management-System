@@ -2,17 +2,23 @@ package com.airbnb.common;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.annotation.LastModifiedBy;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PreUpdate;
 
 @MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
 public abstract class FullyAuditableEntity extends AuditableEntry {
 	private LocalDateTime updatedAt;
 	private String updatedBy;
 
 
 	@Column(name = "Dt_Updated_At")
+	@LastModifiedDate
 	public LocalDateTime getUpdatedAt() {
 		return updatedAt;
 	}
@@ -22,6 +28,7 @@ public abstract class FullyAuditableEntity extends AuditableEntry {
 	}
 	 
 	 @Column(name ="C_Updated_By")
+	 @LastModifiedBy
 	 public String getUpdatedBy() {
 		return updatedBy;
 	 }
@@ -29,9 +36,6 @@ public abstract class FullyAuditableEntity extends AuditableEntry {
 		this.updatedBy = updatedBy;
 	 }
 	 
-	 @PreUpdate
-	 public void beforeUpdate() {
-		 this.updatedAt=LocalDateTime.now();
-	 }
+
 	 
 }
