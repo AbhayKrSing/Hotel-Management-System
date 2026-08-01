@@ -7,12 +7,13 @@ import java.util.UUID;
 
 import com.airbnb.booking.enums.BookingStatus;
 import com.airbnb.common.FullyAuditableEntity;
-import com.airbnb.hotel.model.Hotel;
-import com.airbnb.message.model.GuestReview;
 import com.airbnb.payment.model.Payment;
 import com.airbnb.user.model.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -26,15 +27,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name ="fr_booking")
+@Table(name = "booking")
 public class Booking extends FullyAuditableEntity {
   private UUID id;
-  private User user; //Must be Guest Id
-  private Hotel hotel;
+  private UUID userId; // Must be Guest Id
+  private UUID hotelId;
   private LocalDateTime checkInDate;
   private LocalDateTime checkOutDate;
   private BigDecimal totalPrice;
@@ -43,114 +43,110 @@ public class Booking extends FullyAuditableEntity {
   private List<BookingRoom> bookingRooms;
   private List<BookingOccupant> bookingOccupants;
   private List<Payment> payments;
-  private GuestReview guestReview;
 
-  
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name ="C_Booking_Id",nullable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name = "C_Booking_Id", nullable = false, columnDefinition = "VARCHAR(36)")
   public UUID getId() {
-	return id;
+    return id;
   }
+
   public void setId(UUID id) {
-	this.id = id;
+    this.id = id;
   }
-  
-  @ManyToOne
-  @JoinColumn(name ="C_User_Id")
-  @JsonBackReference
-  public User getUser() {
-	return user;
+
+  public UUID getUserId() {
+    return userId;
   }
-  public void setUser(User user) {
-	this.user = user;
+
+  public void setUserId(UUID userId) {
+    this.userId = userId;
   }
-  
-  @ManyToOne
-  @JoinColumn(name ="C_Hotel_Id")
-  @JsonBackReference
-  public Hotel getHotel() {
-	return hotel;
+
+  @JoinColumn(name = "C_Hotel_Id")
+  public UUID getHotelId() {
+    return hotelId;
   }
-  public void setHotel(Hotel hotel) {
-	this.hotel = hotel;
+
+  public void setHotelId(UUID hotelId) {
+    this.hotelId = hotelId;
   }
-  @Column(name ="Dt_Check_In_Date")
+
+  @Column(name = "Dt_Check_In_Date")
   public LocalDateTime getCheckInDate() {
-	return checkInDate;
+    return checkInDate;
   }
+
   public void setCheckInDate(LocalDateTime checkInDate) {
-	this.checkInDate = checkInDate;
+    this.checkInDate = checkInDate;
   }
-  
-  @Column(name ="Dt_Check_Out_Date")
+
+  @Column(name = "Dt_Check_Out_Date")
   public LocalDateTime getCheckOutDate() {
-	return checkOutDate;
+    return checkOutDate;
   }
+
   public void setCheckOutDate(LocalDateTime checkOutDate) {
-	this.checkOutDate = checkOutDate;
+    this.checkOutDate = checkOutDate;
   }
-  
-  @Column(name ="N_Total_Price")
+
+  @Column(name = "N_Total_Price")
   public BigDecimal getTotalPrice() {
-	return totalPrice;
+    return totalPrice;
   }
+
   public void setTotalPrice(BigDecimal totalPrice) {
-	this.totalPrice = totalPrice;
+    this.totalPrice = totalPrice;
   }
-  
-  @Column(name ="N_Guest_Count")
+
+  @Column(name = "N_Guest_Count")
   public Integer getGuestCount() {
-	return guestCount;
+    return guestCount;
   }
+
   public void setGuestCount(Integer guestCount) {
-	this.guestCount = guestCount;
+    this.guestCount = guestCount;
   }
-  
+
   @Enumerated(EnumType.STRING)
   @Column(name = "C_Booking_Status")
   public BookingStatus getBookingStatus() {
-	return bookingStatus;
+    return bookingStatus;
   }
+
   public void setBookingStatus(BookingStatus bookingStatus) {
-	this.bookingStatus = bookingStatus;
+    this.bookingStatus = bookingStatus;
   }
-  
+
   @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JsonManagedReference
   public List<BookingRoom> getBookingRooms() {
-	 return bookingRooms;
+    return bookingRooms;
   }
 
   public void setBookingRooms(List<BookingRoom> bookingRooms) {
-	 this.bookingRooms = bookingRooms;
+    this.bookingRooms = bookingRooms;
   }
-  
-  @OneToMany(mappedBy = "booking",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+
+  @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JsonManagedReference
   public List<BookingOccupant> getBookingOccupants() {
-	return bookingOccupants;
-}
-  public void setBookingOccupants(List<BookingOccupant> bookingOccupants) {
-	this.bookingOccupants = bookingOccupants;
+    return bookingOccupants;
   }
-  
-  @OneToMany(mappedBy = "booking",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
+
+  public void setBookingOccupants(List<BookingOccupant> bookingOccupants) {
+    this.bookingOccupants = bookingOccupants;
+  }
+
+  @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
   @JsonManagedReference
   public List<Payment> getPayments() {
-	return payments;
+    return payments;
   }
+
   public void setPayments(List<Payment> payments) {
-	this.payments = payments;
+    this.payments = payments;
   }
-  
-  @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-  @JsonManagedReference
-  public GuestReview getGuestReview() {
-	return guestReview;
-  }
-  public void setGuestReview(GuestReview guestReview) {
-	this.guestReview = guestReview;
-  }
-  
+
 }

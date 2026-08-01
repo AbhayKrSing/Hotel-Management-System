@@ -1,18 +1,14 @@
 package com.airbnb.user.model;
 
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import com.airbnb.booking.model.Booking;
 import com.airbnb.common.FullyAuditableEntity;
-import com.airbnb.hotel.model.Hotel;
-import com.airbnb.message.model.GuestReview;
 import com.airbnb.user.enums.Roles;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -24,11 +20,10 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name ="fr_user_master")
+@Table(name ="user_master")
 public class User extends FullyAuditableEntity {
 	
  private UUID id;
@@ -36,12 +31,12 @@ public class User extends FullyAuditableEntity {
  private String email;
  private String name;
  private String password;
- private List<Hotel> hotels;
- private List<Booking> bookings;
- private List<GuestReview> guestReviews; //Only for Guest
+ private Boolean isEnabled = true;  // Admin can disable/suspend user
+ 
  @Id
  @GeneratedValue(strategy = GenerationType.UUID)
- @Column(name="C_User_Id",nullable = false)
+ @JdbcTypeCode(SqlTypes.VARCHAR)
+ @Column(name="C_User_Id",nullable = false,columnDefinition = "VARCHAR(36)")
  public UUID getId() {
 	return id;
  }
@@ -49,9 +44,9 @@ public class User extends FullyAuditableEntity {
 	this.id = id;
  }
  
- @ElementCollection //This is the collection of different values not entity
+ @ElementCollection(fetch = FetchType.EAGER) //This is the collection of different values not entity
  @Enumerated(EnumType.STRING) //Storing ENUM type in string
- @CollectionTable(name ="fr_user_roles",joinColumns = @JoinColumn(name ="C_User_Id")) //Define seperate table name and foreign key column
+ @CollectionTable(name ="user_roles",joinColumns = @JoinColumn(name ="C_User_Id")) //Define seperate table name and foreign key column
  @Column(name ="C_Roles")
  public Set<Roles> getRoles() {
 	return roles;
@@ -82,32 +77,15 @@ public class User extends FullyAuditableEntity {
  public void setPassword(String password) {
 	this.password = password;
  }
- 
- @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
- @JsonManagedReference 
- public List<Hotel> getHotels() {
-	return hotels;
-}
- public void setHotels(List<Hotel> hotels) {
-	this.hotels = hotels;
+
+ @Column(name = "B_Is_Enabled")
+ public Boolean getIsEnabled() {
+	return isEnabled;
  }
- 
- @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
- @JsonManagedReference
- public List<Booking> getBookings() {
-	return bookings;
-}
- public void setBookings(List<Booking> bookings) {
-	this.bookings = bookings;
+ public void setIsEnabled(Boolean isEnabled) {
+	this.isEnabled = isEnabled;
  }
- @OneToMany(mappedBy = "user",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
- @JsonManagedReference
- public List<GuestReview> getGuestReviews() {
-	return guestReviews;
-}
- public void setGuestReviews(List<GuestReview> guestReviews) {
-	this.guestReviews = guestReviews;
- }
- 
+
+
  
 }

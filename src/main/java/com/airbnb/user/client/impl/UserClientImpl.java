@@ -4,10 +4,12 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
-import com.airbnb.user.client.UserClient;
+import com.airbnb.shared.client.UserClient;
 import com.airbnb.user.dto.UserDTO;
 import com.airbnb.user.model.User;
 import com.airbnb.user.repository.UserRepository;
+
+import jakarta.transaction.Transactional;
 
 @Service
 public class UserClientImpl implements UserClient {
@@ -39,9 +41,11 @@ public class UserClientImpl implements UserClient {
 
 	private UserDTO convertToDTO(User user) {
 		UserDTO userDto= new UserDTO();
+		userDto.setId(user.getId());
 		userDto.setEmail(user.getEmail());
 		userDto.setFullName(user.getName());
 		userDto.setRole(user.getRoles());
+		userDto.setActive(true);
 		return userDto;
 	}
 

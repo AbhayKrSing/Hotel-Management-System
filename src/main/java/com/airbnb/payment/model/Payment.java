@@ -8,6 +8,9 @@ import com.airbnb.common.AuditableEntry;
 import com.airbnb.payment.enums.PaymentStatus;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -20,7 +23,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name ="fr_payment_booking")
+@Table(name ="payment_booking")
 public class Payment extends AuditableEntry {
 private UUID id;
 private String transactionId;
@@ -30,7 +33,8 @@ private LocalDateTime paidAt;
 
 @Id
 @GeneratedValue(strategy = GenerationType.UUID)
-@Column(name="C_Payment_Id")
+@JdbcTypeCode(SqlTypes.VARCHAR)
+@Column(name="C_Payment_Id",columnDefinition = "VARCHAR(36)")
 public UUID getId() {
 	return id;
 }

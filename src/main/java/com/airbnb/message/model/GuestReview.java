@@ -8,6 +8,9 @@ import com.airbnb.hotel.model.Hotel;
 import com.airbnb.user.model.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -21,18 +24,20 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 
 @Entity
-@Table(name ="fr_guest_review")
+@Table(name ="guest_review")
 public class GuestReview extends FullyAuditableEntity {
   private UUID id;
   private String reviewMessage;
-  private Hotel hotel;
-  private User user;  //Only guest can write review
-  private Booking booking;
+  private String hostResponse;  // Host's reply to the review
+  private UUID hotelId;
+  private UUID userId;  //Only guest can write review
+  private UUID bookingId;
   private Integer rating;
   
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "C_Guest_Review_Id")
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name = "C_Guest_Review_Id",columnDefinition = "VARCHAR(36)")
   public UUID getId() {
 	return id;
   }
@@ -47,34 +52,37 @@ public class GuestReview extends FullyAuditableEntity {
   public void setReviewMessage(String reviewMessage) {
 	this.reviewMessage = reviewMessage;
   }
-  @ManyToOne
+
+  @Column(name = "C_Host_Response")
+  public String getHostResponse() {
+	return hostResponse;
+  }
+  public void setHostResponse(String hostResponse) {
+	this.hostResponse = hostResponse;
+  }
+
   @JoinColumn(name = "C_Hotel_Id")
-  @JsonBackReference
-  public Hotel getHotel() {
-	return hotel;
+  public UUID getHotelId() {
+	return hotelId;
   }
-  public void setHotel(Hotel hotel) {
-	this.hotel = hotel;
+  public void setHotelId(UUID hotelId) {
+	this.hotelId = hotelId;
   }
-  
-  @ManyToOne
+
   @JoinColumn(name ="C_User_Id")
-  @JsonBackReference
-  public User getUser() {
-	return user;
+  public UUID getUserId() {
+	return userId;
   }
-  public void setUser(User user) {
-	this.user = user;
+  public void setUserId(UUID userId) {
+	this.userId = userId;
   }
   
-  @OneToOne
   @JoinColumn(name = "C_Booking_Id", unique = true)
-  @JsonBackReference
-  public Booking getBooking() {
-	return booking;
+  public UUID getBookingId() {
+	return bookingId;
   }
-  public void setBooking(Booking booking) {
-	this.booking = booking;
+  public void setBookingId(UUID bookingId) {
+	this.bookingId = bookingId;
   }
 
   @Column(name = "N_Rating")

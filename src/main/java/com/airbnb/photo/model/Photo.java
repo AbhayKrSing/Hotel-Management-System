@@ -7,6 +7,9 @@ import com.airbnb.hotel.model.Hotel;
 import com.airbnb.hotel.model.Room;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,16 +20,17 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name ="fr_store_photo")
+@Table(name ="store_photo")
 public class Photo extends AuditableEntry {
   private UUID id;
-  private Room roomId;
-  private Hotel hotelId;
+  private UUID roomId;
+  private UUID hotelId;
   private String photoUrl;
   
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name = "C_Photo_Id",nullable = false)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name = "C_Photo_Id",nullable = false,columnDefinition = "VARCHAR(36)")
   public UUID getId() {
 	return id;
   }
@@ -34,23 +38,19 @@ public class Photo extends AuditableEntry {
 	this.id = id;
   }
   
-  @ManyToOne
-  @JsonBackReference
   @JoinColumn(name = "C_Room_Id")
-  public Room getRoomId() {
+  public UUID getRoomId() {
 	return roomId;
   }
-  public void setRoomId(Room roomId) {
+  public void setRoomId(UUID roomId) {
 	this.roomId = roomId;
   }
   
-  @ManyToOne
-  @JsonBackReference
   @JoinColumn(name = "C_Hotel_Id")
-  public Hotel getHotelId() {
+  public UUID getHotelId() {
 	return hotelId;
   }
-  public void setHotelId(Hotel hotelId) {
+  public void setHotelId(UUID hotelId) {
 	this.hotelId = hotelId;
   }
   

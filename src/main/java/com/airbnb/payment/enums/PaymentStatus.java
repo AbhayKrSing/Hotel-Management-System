@@ -3,7 +3,8 @@ package com.airbnb.payment.enums;
 public enum PaymentStatus {
   SUCCESS("Success"),
   FAILED("Failed"),
-  PENDING("Pending");
+  PENDING("Pending"),
+  REFUNDED("Refunded");
 	
   private String displayName;  
   PaymentStatus(String displayName) {

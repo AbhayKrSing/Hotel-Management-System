@@ -7,6 +7,9 @@ import java.util.UUID;
 import com.airbnb.common.FullyAuditableEntity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -18,19 +21,20 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "fr_room_inventory", uniqueConstraints = {
+@Table(name = "room_inventory", uniqueConstraints = {
 		@UniqueConstraint(columnNames = {"C_Room_Id", "Dt_Date"})
 })
 public class Inventory extends FullyAuditableEntity {
    private UUID id;
    private Date date;
    private Integer availableUnits;
-   private Room room;
+   private UUID roomId;
    private BigDecimal pricePerNight;
    
    @Id
    @GeneratedValue(strategy = GenerationType.UUID)
-   @Column(name = "C_Inventory_Id")
+   @JdbcTypeCode(SqlTypes.VARCHAR)
+   @Column(name = "C_Inventory_Id",columnDefinition = "VARCHAR(36)")
    public UUID getId() {
 	return id;
    }
@@ -53,14 +57,13 @@ public class Inventory extends FullyAuditableEntity {
 	this.availableUnits = availableUnits;
    }
    
-   @ManyToOne
-   @JsonBackReference
+
    @JoinColumn(name ="C_Room_Id")
-   public Room getRoom() {
-	return room;
+   public UUID getRoomId() {
+	return roomId;
    }
-   public void setRoom(Room room) {
-	this.room = room;
+   public void setRoomId(UUID roomId) {
+	this.roomId = roomId;
    }
    
    @Column(name ="N_Price_Per_Night")

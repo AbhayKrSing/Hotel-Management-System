@@ -1,4 +1,4 @@
-package com.airbnb.user.client;
+package com.airbnb.shared.client;
 
 import java.util.UUID;
 

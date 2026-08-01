@@ -7,6 +7,9 @@ import com.airbnb.common.AuditableEntry;
 import com.airbnb.hotel.model.Room;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -17,17 +20,18 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name ="fr_booking_room")
+@Table(name ="booking_room")
 public class BookingRoom extends AuditableEntry {
  private UUID id;
- private Room room;
+ private UUID roomId;
  private Booking  booking;
  private BigDecimal pricePerNight;
  private Integer unitsBooked;
  
  @Id
  @GeneratedValue(strategy = GenerationType.UUID)
- @Column(name ="C_Booking_Room_Id",nullable = false)
+ @JdbcTypeCode(SqlTypes.VARCHAR)
+ @Column(name ="C_Booking_Room_Id",nullable = false,columnDefinition = "VARCHAR(36)")
  public UUID getId() {
 	return id;
  }
@@ -35,14 +39,12 @@ public class BookingRoom extends AuditableEntry {
 	this.id = id;
  }
  
- @ManyToOne
  @JoinColumn(name = "C_Room_Id")
- @JsonBackReference
- public Room getRoom() {
-	return room;
+ public UUID getRoomId() {
+	return roomId;
  }
- public void setRoom(Room room) {
-	this.room = room;
+ public void setRoomId(UUID roomId) {
+	this.roomId = roomId;
  }
  
  @ManyToOne

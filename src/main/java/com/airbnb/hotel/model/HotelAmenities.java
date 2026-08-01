@@ -5,6 +5,9 @@ import java.util.UUID;
 import com.airbnb.common.FullyAuditableEntity;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -15,7 +18,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name ="fr_hotel_amenities")
+@Table(name ="hotel_amenities")
 public class HotelAmenities extends FullyAuditableEntity {
 
 	private UUID id;
@@ -24,7 +27,8 @@ public class HotelAmenities extends FullyAuditableEntity {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
-	@Column(name ="C_Hotel_Amenties_Id")
+	@JdbcTypeCode(SqlTypes.VARCHAR)
+	@Column(name ="C_Hotel_Amenties_Id",columnDefinition = "VARCHAR(36)")
 	public UUID getId() {
 		return id;
 	}

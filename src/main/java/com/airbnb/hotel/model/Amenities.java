@@ -15,10 +15,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 
 @Entity
-@Table(name ="fr_amenities_master")
+@Table(name ="amenities_master")
 public class Amenities {
   private UUID id;
   private String amenity;
@@ -28,7 +30,8 @@ public class Amenities {
   
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(name ="C_Amenity_Id")
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name ="C_Amenity_Id",columnDefinition = "VARCHAR(36)")
   public UUID getId() {
 	return id;
   }

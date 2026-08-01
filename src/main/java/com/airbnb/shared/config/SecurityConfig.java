@@ -40,11 +40,11 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/api/"+apiVersion+"/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                         // Role-based endpoints
                         .requestMatchers("/api/"+apiVersion+"/admin/**").hasRole(Roles.ADMIN.getDisplayName())
-                        .requestMatchers("/api/"+apiVersion+"/host/**").hasAnyRole(Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/hotels/**").hasAnyRole(Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/host/**").hasAnyRole(Roles.HOST.getDisplayName())
                         .requestMatchers("/api/"+apiVersion+"/guest/**").hasAnyRole(Roles.GUEST.getDisplayName(),Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
 
                         // All other requests need authentication

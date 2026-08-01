@@ -5,12 +5,15 @@ import java.util.UUID;
 
 import com.airbnb.booking.model.Booking;
 import com.airbnb.common.FullyAuditableEntity;
-import com.airbnb.hotel.enums.Status;
+import com.airbnb.hotel.enums.HotelStatus;
 import com.airbnb.message.model.GuestReview;
 import com.airbnb.photo.model.Photo;
 import com.airbnb.user.model.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
@@ -29,25 +32,34 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name ="fr_hotel_master")
+@Table(name ="hotel_master")
 public class Hotel extends FullyAuditableEntity {
 
 	private UUID id;
 	private String name;
 	private String description;
 	private String address;
-	private List<Photo> photo;
+	private String city;
+	private String country;
+	private String zipCode;
+	private String phoneNumber;
+	private String cancellationPolicy;
+	private String checkInTime;
+	private String checkOutTime;
+	private Integer starRating;
+	private Boolean isVerified;
+	private Double latitude;
+	private Double longitude;
 	private List<String> rules;
-	private Status status;
-	private User user;
+	private HotelStatus status;
+	private UUID hostId;
 	private List<Room> rooms;
 	private List<HotelAmenities> hotelAmenities;
-	private List<Booking> bookings;
-	private List<GuestReview> guestReviews;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
-	@Column(name ="C_Hotel_Id",nullable = false)
+	@JdbcTypeCode(SqlTypes.VARCHAR)
+	@Column(name ="C_Hotel_Id",nullable = false,columnDefinition = "VARCHAR(36)")
 	public UUID getId() {
 		return id;
 	}
@@ -76,17 +88,96 @@ public class Hotel extends FullyAuditableEntity {
 		this.address = address;
 	}
 	
-	@OneToMany(mappedBy = "hotelId",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-	@JsonManagedReference
-	public List<Photo> getPhoto() {
-		return photo;
+	@Column(name ="C_City")
+	public String getCity() {
+		return city;
 	}
-	public void setPhoto(List<Photo> photoUrl) {
-		this.photo = photoUrl;
+	public void setCity(String city) {
+		this.city = city;
 	}
-	
+
+	@Column(name ="C_Country")
+	public String getCountry() {
+		return country;
+	}
+	public void setCountry(String country) {
+		this.country = country;
+	}
+
+	@Column(name ="C_Zip_Code")
+	public String getZipCode() {
+		return zipCode;
+	}
+	public void setZipCode(String zipCode) {
+		this.zipCode = zipCode;
+	}
+
+	@Column(name ="C_Phone_Number")
+	public String getPhoneNumber() {
+		return phoneNumber;
+	}
+	public void setPhoneNumber(String phoneNumber) {
+		this.phoneNumber = phoneNumber;
+	}
+
+	@Column(name ="C_Cancellation_Policy")
+	public String getCancellationPolicy() {
+		return cancellationPolicy;
+	}
+	public void setCancellationPolicy(String cancellationPolicy) {
+		this.cancellationPolicy = cancellationPolicy;
+	}
+
+	@Column(name ="C_Check_In_Time")
+	public String getCheckInTime() {
+		return checkInTime;
+	}
+	public void setCheckInTime(String checkInTime) {
+		this.checkInTime = checkInTime;
+	}
+
+	@Column(name ="C_Check_Out_Time")
+	public String getCheckOutTime() {
+		return checkOutTime;
+	}
+	public void setCheckOutTime(String checkOutTime) {
+		this.checkOutTime = checkOutTime;
+	}
+
+	@Column(name ="N_Star_Rating")
+	public Integer getStarRating() {
+		return starRating;
+	}
+	public void setStarRating(Integer starRating) {
+		this.starRating = starRating;
+	}
+
+	@Column(name ="B_Is_Verified")
+	public Boolean getIsVerified() {
+		return isVerified;
+	}
+	public void setIsVerified(Boolean isVerified) {
+		this.isVerified = isVerified;
+	}
+
+	@Column(name ="N_Latitude")
+	public Double getLatitude() {
+		return latitude;
+	}
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
+
+	@Column(name ="N_Longitude")
+	public Double getLongitude() {
+		return longitude;
+	}
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
+	}
+
 	@ElementCollection
-	@CollectionTable(name = "fr_hotel_rules", joinColumns = @JoinColumn(name = "C_Hotel_Id"))
+	@CollectionTable(name = "hotel_rules", joinColumns = @JoinColumn(name = "C_Hotel_Id"))
 	@Column(name = "C_Rule")
 	public List<String> getRules() {
 		return rules;
@@ -96,21 +187,20 @@ public class Hotel extends FullyAuditableEntity {
 	}
 	@Enumerated(EnumType.STRING)
 	@Column(name ="C_Status")
-	public Status getStatus() {
+	public HotelStatus getStatus() {
 		return status;
 	}
-	public void setStatus(Status status) {
+	public void setStatus(HotelStatus status) {
 		this.status = status;
 	}
 	
-	@ManyToOne
-	@JoinColumn(name = "C_User_Id")
-	@JsonBackReference
-	public User getUser() {
-		return user;
+
+	@JoinColumn(name = "C_Host_Id")
+	public UUID getHostId() {
+		return hostId;
 	}
-	public void setUser(User user) {
-		this.user = user;
+	public void setHostId(UUID hostId) {
+		this.hostId = hostId;
 	}
 	
 	@OneToMany(mappedBy = "hotel",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
@@ -130,21 +220,4 @@ public class Hotel extends FullyAuditableEntity {
 		this.hotelAmenities = hotelAmenities;
 	}
 	
-	@OneToMany(mappedBy = "hotel",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-	@JsonManagedReference
-	public List<Booking> getBookings() {
-		return bookings;
-	}
-	public void setBookings(List<Booking> bookings) {
-		this.bookings = bookings;
-	}
-	
-	@OneToMany(mappedBy = "hotel",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-	@JsonManagedReference
-	public List<GuestReview> getGuestReviews() {
-		return guestReviews;
-	}
-	public void setGuestReviews(List<GuestReview> guestReviews) {
-		this.guestReviews = guestReviews;
-	}
 }

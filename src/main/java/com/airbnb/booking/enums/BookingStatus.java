@@ -1,11 +1,11 @@
 package com.airbnb.booking.enums;
 
 public enum BookingStatus {
-   CONFIRM("Confirm"),
-   PENDING("Pending"),
-   CHECKIN("CheckIn"),
-   CHECKOUT("CheckOut"),
-   CANCEL("Cancel");
+   CONFIRMED("CONFIRMED"),
+   PENDING("PENDING"),
+   CHECKIN("CHECKIN"),
+   CHECKOUT("CHECKOUT"),
+   CANCELLED("CANCELLED");
    
    private String displayName;
    

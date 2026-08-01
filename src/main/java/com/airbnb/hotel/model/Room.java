@@ -7,7 +7,7 @@ import java.util.UUID;
 
 import com.airbnb.booking.model.BookingRoom;
 import com.airbnb.common.FullyAuditableEntity;
-import com.airbnb.hotel.enums.Status;
+import com.airbnb.hotel.enums.HotelStatus;
 import com.airbnb.photo.model.Photo;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -17,7 +17,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -26,9 +25,11 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
-@Table(name ="fr_room_master")
+@Table(name ="room_master")
 public class Room extends FullyAuditableEntity {
 
 	private UUID id;
@@ -36,17 +37,15 @@ public class Room extends FullyAuditableEntity {
 	private String description;
 	private String  roomTypes;
 	private Integer guestCapacity;
-	private List<Photo> photo;
 	private String bedType;
-	private Status status;
+	private HotelStatus status;
 	private Integer noOfUnits;
 	private BigDecimal pricePerNight;
-	private List<Inventory> inventories;
-	private List<BookingRoom> bookingRooms;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
-	@Column(name= "C_Room_Id")
+	@JdbcTypeCode(SqlTypes.VARCHAR)
+	@Column(name= "C_Room_Id",columnDefinition = "VARCHAR(36)")
 	public UUID getId() {
 		return id;
 	}
@@ -86,15 +85,6 @@ public class Room extends FullyAuditableEntity {
 	public void setGuestCapacity(Integer guestCapacity) {
 		this.guestCapacity = guestCapacity;
 	}
-
-    @OneToMany(mappedBy = "roomId",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-    @JsonManagedReference
-	public List<Photo> getPhoto() {
-		return photo;
-	}
-	public void setPhoto(List<Photo> photo) {
-		this.photo = photo;
-	}
 	
 	@Column(name ="C_Bed_Type")
 	public String getBedType() {
@@ -106,10 +96,10 @@ public class Room extends FullyAuditableEntity {
 	
 	@Enumerated(EnumType.STRING)
 	@Column(name= "C_Status")
-	public Status getStatus() {
+	public HotelStatus getStatus() {
 		return status;
 	}
-	public void setStatus(Status status) {
+	public void setStatus(HotelStatus status) {
 		this.status = status;
 	}
 	
@@ -128,22 +118,7 @@ public class Room extends FullyAuditableEntity {
 	public void setPricePerNight(BigDecimal pricePerNight) {
 		this.pricePerNight = pricePerNight;
 	}
-    @OneToMany(mappedBy = "room",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-    @JsonManagedReference
-	public List<Inventory> getInventories() {
-		return inventories;
-	}
-	public void setInventories(List<Inventory> inventories) {
-		this.inventories = inventories;
-	}
-	
-	@OneToMany(mappedBy = "room",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-	@JsonManagedReference
-	public List<BookingRoom> getBookingRooms() {
-		return bookingRooms;
-	}
-	public void setBookingRooms(List<BookingRoom> bookingRooms) {
-		this.bookingRooms = bookingRooms;
-	}
+
+
 	
  }

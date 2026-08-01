@@ -13,7 +13,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.airbnb.user.client.UserClient;
+import com.airbnb.shared.client.UserClient;
 import com.airbnb.user.dto.UserDTO;
 
 import jakarta.servlet.FilterChain;
