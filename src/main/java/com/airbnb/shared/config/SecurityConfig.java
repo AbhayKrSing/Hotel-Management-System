@@ -6,6 +6,7 @@ import com.airbnb.user.enums.Roles;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,6 +25,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
                   
 	@Value("${api.version}")
 	private String apiVersion;
@@ -40,16 +42,27 @@ public class SecurityConfig {
                         // Public endpoints
                         .requestMatchers("/api/"+apiVersion+"/auth/**").permitAll()
                         .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/"+apiVersion+"/hotels/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/"+apiVersion+"/hotels/{id}/available-rooms").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/"+apiVersion+"/hotels/{id}/rooms").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/"+apiVersion+"/hotels/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/"+apiVersion+"/hotels/{id}/reviews").permitAll()
 
                         // Role-based endpoints
                         .requestMatchers("/api/"+apiVersion+"/admin/**").hasRole(Roles.ADMIN.getDisplayName())
-                        .requestMatchers("/api/"+apiVersion+"/hotels/**").hasAnyRole(Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
                         .requestMatchers("/api/"+apiVersion+"/host/**").hasAnyRole(Roles.HOST.getDisplayName())
-                        .requestMatchers("/api/"+apiVersion+"/guest/**").hasAnyRole(Roles.GUEST.getDisplayName(),Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/hotels/**").hasAnyRole(Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/inventory/**").hasAnyRole(Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/guest/**").hasAnyRole(Roles.GUEST.getDisplayName(), Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/bookings/**").hasAnyRole(Roles.GUEST.getDisplayName(), Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/payments/**").hasAnyRole(Roles.GUEST.getDisplayName(), Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/reviews/**").hasAnyRole(Roles.GUEST.getDisplayName(), Roles.HOST.getDisplayName(), Roles.ADMIN.getDisplayName())
+                        .requestMatchers("/api/"+apiVersion+"/rooms/**").authenticated()
 
                         // All other requests need authentication
                         .anyRequest().authenticated()
                 )
+
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
@@ -71,7 +84,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "http://localhost:8080"));
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://localhost:4200",
+                "http://localhost:8080"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

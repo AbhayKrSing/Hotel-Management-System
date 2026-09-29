@@ -21,12 +21,20 @@ public class PhotoClientImpl  implements PhotoClient {
 		Photo hotelPhoto = photoService.createHotelPhoto(url, hotelId);
 		return convertToDTO(hotelPhoto);
 	}
-	private UploadPhotoDTO convertToDTO(Photo hotelPhoto) {
-		UploadPhotoDTO uploadPhotoDto=new UploadPhotoDTO();
-		uploadPhotoDto.setHotelId(hotelPhoto.getHotelId());
-		uploadPhotoDto.setPhotoUrl(hotelPhoto.getPhotoUrl());
-		return uploadPhotoDto;
-		
+
+	@Override
+	public UploadPhotoDTO createRoomPhoto(String url, UUID roomId) {
+		Photo roomPhoto = photoService.createRoomPhoto(url, roomId);
+		return convertToDTO(roomPhoto);
 	}
+
+	private UploadPhotoDTO convertToDTO(Photo photo) {
+		UploadPhotoDTO uploadPhotoDto=new UploadPhotoDTO();
+		uploadPhotoDto.setHotelId(photo.getHotelId());
+		uploadPhotoDto.setRoomId(photo.getRoomId());
+		uploadPhotoDto.setPhotoUrl(photo.getPhotoUrl());
+		return uploadPhotoDto;
+	}
+
    
 }

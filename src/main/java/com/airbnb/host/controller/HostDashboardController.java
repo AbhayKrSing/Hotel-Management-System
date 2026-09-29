@@ -5,7 +5,10 @@ import com.airbnb.booking.enums.BookingStatus;
 import com.airbnb.booking.service.BookingService;
 import com.airbnb.booking.repository.BookingRepository;
 import com.airbnb.booking.model.Booking;
+import com.airbnb.shared.dto.ApiResponse;
+import com.airbnb.shared.exceptions.ForbiddenException;
 import com.airbnb.shared.exceptions.ResourceNotFoundException;
+import com.airbnb.shared.exceptions.UnauthorizedException;
 import com.airbnb.user.model.User;
 import com.airbnb.user.repository.UserRepository;
 
@@ -14,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -41,12 +43,12 @@ public class HostDashboardController {
     private Authentication requireHost() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+            throw new UnauthorizedException("User not authenticated");
         }
         boolean isHostOrAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_HOST") || a.getAuthority().equals("ROLE_ADMIN"));
         if (!isHostOrAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only hosts can access this dashboard");
+            throw new ForbiddenException("Only hosts can access this dashboard");
         }
         return auth;
     }
@@ -56,10 +58,10 @@ public class HostDashboardController {
      * Returns all bookings for all hotels owned by the authenticated host.
      */
     @GetMapping("/bookings")
-    public ResponseEntity<List<BookingDTO>> getHostBookings() {
+    public ResponseEntity<ApiResponse<List<BookingDTO>>> getHostBookings() {
         Authentication auth = requireHost();
         List<BookingDTO> bookings = bookingService.getHostBookings(auth.getName());
-        return ResponseEntity.ok(bookings);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Host bookings fetched successfully", bookings));
     }
 
     /**
@@ -68,12 +70,12 @@ public class HostDashboardController {
      * Body: { "status": "CONFIRMED" }
      */
     @PutMapping("/bookings/{id}/status")
-    public ResponseEntity<BookingDTO> updateBookingStatus(
+    public ResponseEntity<ApiResponse<BookingDTO>> updateBookingStatus(
             @PathVariable UUID id,
             @RequestParam BookingStatus status) {
         Authentication auth = requireHost();
         BookingDTO updated = bookingService.updateBookingStatus(id, status, auth.getName());
-        return ResponseEntity.ok(updated);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Booking status updated successfully", updated));
     }
 
     /**
@@ -81,7 +83,7 @@ public class HostDashboardController {
      * Returns total earnings summary for all the host's confirmed bookings.
      */
     @GetMapping("/earnings")
-    public ResponseEntity<Map<String, Object>> getHostEarnings() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getHostEarnings() {
         Authentication auth = requireHost();
         User host = userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new ResourceNotFoundException("Host not found"));
@@ -112,6 +114,6 @@ public class HostDashboardController {
         summary.put("totalCancelledBookings", totalCancelled);
         summary.put("totalBookings", bookings.size());
 
-        return ResponseEntity.ok(summary);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Earnings summary fetched successfully", summary));
     }
 }

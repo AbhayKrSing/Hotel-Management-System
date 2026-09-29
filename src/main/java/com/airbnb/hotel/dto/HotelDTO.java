@@ -3,6 +3,7 @@ package com.airbnb.hotel.dto;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import java.util.List;
 import com.airbnb.hotel.enums.HotelStatus;
 
 public class HotelDTO {
@@ -24,7 +25,7 @@ public class HotelDTO {
 	private String checkOutTime;
 	private Integer starRating;
 	private Boolean isVerified;
-	private String amenities;
+	private List<String> amenities;
 	private Double latitude;
 	private Double longitude;
 	private LocalDateTime createdAt;
@@ -174,11 +175,11 @@ public class HotelDTO {
 		this.isVerified = isVerified;
 	}
 
-	public String getAmenities() {
+	public List<String> getAmenities() {
 		return amenities;
 	}
 
-	public void setAmenities(String amenities) {
+	public void setAmenities(List<String> amenities) {
 		this.amenities = amenities;
 	}
 

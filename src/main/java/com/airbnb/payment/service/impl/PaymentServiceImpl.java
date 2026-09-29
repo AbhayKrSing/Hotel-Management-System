@@ -4,11 +4,12 @@ import com.airbnb.booking.enums.BookingStatus;
 import com.airbnb.booking.model.Booking;
 import com.airbnb.booking.repository.BookingRepository;
 import com.airbnb.payment.dto.PaymentDTO;
+import com.airbnb.payment.dto.RazorpayOrderDTO;
 import com.airbnb.payment.enums.PaymentStatus;
 import com.airbnb.payment.model.Payment;
 import com.airbnb.payment.repository.PaymentRepository;
 import com.airbnb.payment.service.PaymentService;
-import com.airbnb.payment.service.StripeService;
+import com.airbnb.payment.service.RazorpayService;
 import com.airbnb.shared.exceptions.ResourceNotFoundException;
 import com.airbnb.user.model.User;
 import com.airbnb.user.repository.UserRepository;
@@ -27,16 +28,49 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
-    private final StripeService stripeService;
+    private final RazorpayService razorpayService;
 
     public PaymentServiceImpl(PaymentRepository paymentRepository,
-                              BookingRepository bookingRepository,
-                              UserRepository userRepository,
-                              StripeService stripeService) {
+                               BookingRepository bookingRepository,
+                               UserRepository userRepository,
+                               RazorpayService razorpayService) {
         this.paymentRepository = paymentRepository;
         this.bookingRepository = bookingRepository;
         this.userRepository = userRepository;
-        this.stripeService = stripeService;
+        this.razorpayService = razorpayService;
+    }
+
+    @Override
+    @Transactional
+    public RazorpayOrderDTO createRazorpayOrder(UUID bookingId, String guestEmail) {
+        userRepository.findByEmail(guestEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("Guest user not found"));
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found: " + bookingId));
+
+        if (booking.getBookingStatus() == BookingStatus.CONFIRMED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking is already paid and confirmed");
+        }
+
+        if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot pay for a cancelled booking");
+        }
+
+        String razorpayOrderId = razorpayService.createOrder(booking.getTotalPrice(), booking.getId());
+        return new RazorpayOrderDTO(
+                razorpayOrderId,
+                booking.getId(),
+                booking.getTotalPrice(),
+                "INR",
+                razorpayService.getKeyId()
+        );
+    }
+
+    @Override
+    @Transactional
+    public PaymentDTO verifyAndProcessPayment(PaymentDTO paymentDTO, String guestEmail) {
+        return processPayment(paymentDTO, guestEmail);
     }
 
     @Override
@@ -47,10 +81,6 @@ public class PaymentServiceImpl implements PaymentService {
 
         Booking booking = bookingRepository.findById(paymentDTO.getBookingId())
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found: " + paymentDTO.getBookingId()));
-//
-//        if (!booking.getUser().getEmail().equals(guestEmail)) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You can only pay for your own bookings");
-//        }
 
         if (booking.getBookingStatus() == BookingStatus.CONFIRMED) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Booking is already paid and confirmed");
@@ -60,27 +90,40 @@ public class PaymentServiceImpl implements PaymentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot pay for a cancelled booking");
         }
 
-        Payment payment = new Payment();
-        payment.setBooking(booking);
+        String razorpayOrderId = paymentDTO.getRazorpayOrderId();
+        String razorpayPaymentId = paymentDTO.getRazorpayPaymentId();
+        String razorpaySignature = paymentDTO.getRazorpaySignature();
 
-        try {
-            String transactionId = stripeService.charge(paymentDTO.getCardToken(), booking.getTotalPrice());
-            payment.setTransactionId(transactionId);
-            payment.setPaymentStatus(PaymentStatus.SUCCESS);
-            payment.setPaidAt(LocalDateTime.now());
-
-            // Confirm the booking
-            booking.setBookingStatus(BookingStatus.CONFIRMED);
-            bookingRepository.save(booking);
-        } catch (RuntimeException e) {
-            payment.setPaymentStatus(PaymentStatus.FAILED);
-            payment.setPaidAt(LocalDateTime.now());
-            paymentRepository.save(payment);
-            throw new ResponseStatusException(HttpStatus.PAYMENT_REQUIRED, "Payment failed: " + e.getMessage());
+        // If signature verification info is provided, verify signature
+        if (razorpayOrderId != null && razorpayPaymentId != null && razorpaySignature != null) {
+            boolean isValid = razorpayService.verifySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature);
+            if (!isValid) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid Razorpay payment signature");
+            }
         }
 
+        // Determine transaction ID (use paymentId if available, or generate/reuse transaction ID)
+        String txnId = (razorpayPaymentId != null && !razorpayPaymentId.isBlank()) 
+                ? razorpayPaymentId 
+                : (paymentDTO.getTransactionId() != null ? paymentDTO.getTransactionId() : "pay_" + UUID.randomUUID().toString().replace("-", "").substring(0, 14));
+
+        Payment payment = new Payment();
+        payment.setBooking(booking);
+        payment.setTransactionId(txnId);
+        payment.setPaymentStatus(PaymentStatus.SUCCESS);
+        payment.setPaidAt(LocalDateTime.now());
+
+        // Confirm the booking
+        booking.setBookingStatus(BookingStatus.CONFIRMED);
+        bookingRepository.save(booking);
+
         Payment saved = paymentRepository.save(payment);
-        return convertToDTO(saved, booking.getTotalPrice());
+
+        PaymentDTO result = convertToDTO(saved, booking.getTotalPrice());
+        result.setRazorpayOrderId(razorpayOrderId);
+        result.setRazorpayPaymentId(txnId);
+        result.setRazorpaySignature(razorpaySignature);
+        return result;
     }
 
     @Override
@@ -97,17 +140,8 @@ public class PaymentServiceImpl implements PaymentService {
         }
 
         Booking booking = payment.getBooking();
-        boolean isGuest = booking.getUserId().equals(user.getId());
-        
-        //TO-DO Check logic here
-//        boolean isHost = booking.getHotel().getHost().getId().equals(user.getId());
-//        boolean isAdmin = user.getRoles().contains(com.airbnb.user.enums.Roles.ADMIN);
-//
-//        if (!isGuest && !isHost && !isAdmin) {
-//            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized to refund this payment");
-//        }
 
-        String refundId = stripeService.refund(payment.getTransactionId());
+        String refundId = razorpayService.refund(payment.getTransactionId(), booking.getTotalPrice());
         payment.setTransactionId(refundId);
         payment.setPaymentStatus(PaymentStatus.REFUNDED);
 
@@ -133,6 +167,7 @@ public class PaymentServiceImpl implements PaymentService {
         dto.setId(payment.getId());
         dto.setBookingId(payment.getBooking().getId());
         dto.setTransactionId(payment.getTransactionId());
+        dto.setRazorpayPaymentId(payment.getTransactionId());
         dto.setPaymentStatus(payment.getPaymentStatus());
         dto.setAmount(amount);
         dto.setPaidAt(payment.getPaidAt());

@@ -23,4 +23,12 @@ public class PhotoService {
 	   return photoRepository.save(photo);
 	}
 
+	public Photo createRoomPhoto(String url, UUID roomId) {
+		Photo photo = new Photo();
+		photo.setRoomId(roomId);
+		photo.setPhotoUrl(url);
+		return photoRepository.save(photo);
+	}
+
+
 }

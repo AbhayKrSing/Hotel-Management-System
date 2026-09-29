@@ -2,6 +2,9 @@ package com.airbnb.admin.controller;
 
 import com.airbnb.admin.service.AdminService;
 import com.airbnb.booking.dto.BookingDTO;
+import com.airbnb.shared.dto.ApiResponse;
+import com.airbnb.shared.exceptions.ForbiddenException;
+import com.airbnb.shared.exceptions.UnauthorizedException;
 import com.airbnb.user.model.User;
 
 import org.springframework.http.HttpStatus;
@@ -9,7 +12,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -17,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/admin")
+@RequestMapping("/api/${api.version}/admin")
 public class AdminController {
 
     private final AdminService adminService;
@@ -29,12 +31,12 @@ public class AdminController {
     private void requireAdmin() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated()) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "User not authenticated");
+            throw new UnauthorizedException("User not authenticated");
         }
         boolean isAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
         if (!isAdmin) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin access required");
+            throw new ForbiddenException("Admin access required");
         }
     }
 
@@ -43,9 +45,10 @@ public class AdminController {
      * List all registered users on the platform.
      */
     @GetMapping("/users")
-    public ResponseEntity<List<User>> getAllUsers() {
+    public ResponseEntity<ApiResponse<List<User>>> getAllUsers() {
         requireAdmin();
-        return ResponseEntity.ok(adminService.getAllUsers());
+        List<User> users = adminService.getAllUsers();
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Users fetched successfully", users));
     }
 
     /**
@@ -53,11 +56,12 @@ public class AdminController {
      * Enable or disable (suspend/ban) a user account.
      */
     @PutMapping("/users/{id}/status")
-    public ResponseEntity<Void> setUserStatus(@PathVariable UUID id,
+    public ResponseEntity<ApiResponse<Void>> setUserStatus(@PathVariable UUID id,
                                                @RequestParam boolean enabled) {
         requireAdmin();
         adminService.setUserStatus(id, enabled);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(),
+                "User status updated successfully", null));
     }
 
     /**
@@ -65,9 +69,10 @@ public class AdminController {
      * View all bookings across the entire platform.
      */
     @GetMapping("/bookings")
-    public ResponseEntity<List<BookingDTO>> getAllBookings() {
+    public ResponseEntity<ApiResponse<List<BookingDTO>>> getAllBookings() {
         requireAdmin();
-        return ResponseEntity.ok(adminService.getAllBookings());
+        List<BookingDTO> bookings = adminService.getAllBookings();
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Bookings fetched successfully", bookings));
     }
 
     /**
@@ -75,11 +80,11 @@ public class AdminController {
      * Force-cancel a booking (for dispute resolution).
      */
     @PutMapping("/bookings/{id}/cancel")
-    public ResponseEntity<BookingDTO> forceCancelBooking(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<BookingDTO>> forceCancelBooking(@PathVariable UUID id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         requireAdmin();
         BookingDTO result = adminService.forceCancelBooking(id, auth.getName());
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Booking force-cancelled successfully", result));
     }
 
     /**
@@ -87,9 +92,10 @@ public class AdminController {
      * Platform-level analytics dashboard.
      */
     @GetMapping("/analytics")
-    public ResponseEntity<Map<String, Object>> getAnalytics() {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getAnalytics() {
         requireAdmin();
-        return ResponseEntity.ok(adminService.getPlatformAnalytics());
+        Map<String, Object> analytics = adminService.getPlatformAnalytics();
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Analytics fetched successfully", analytics));
     }
 
     /**
@@ -97,9 +103,9 @@ public class AdminController {
      * Update the global platform commission rate (percentage).
      */
     @PutMapping("/commission")
-    public ResponseEntity<Void> updateCommission(@RequestParam BigDecimal rate) {
+    public ResponseEntity<ApiResponse<Void>> updateCommission(@RequestParam BigDecimal rate) {
         requireAdmin();
         adminService.updateCommission(rate);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Commission rate updated successfully", null));
     }
 }

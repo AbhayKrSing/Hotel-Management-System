@@ -12,6 +12,11 @@ import com.airbnb.inventory.repository.InventoryRepository;
 import com.airbnb.photo.client.PhotoClient;
 import com.airbnb.photo.dto.UploadPhotoDTO;
 import com.airbnb.photo.model.Photo;
+import com.airbnb.hotel.model.Amenities;
+import com.airbnb.hotel.model.HotelAmenities;
+import com.airbnb.hotel.repository.AmenitiesRepository;
+import com.airbnb.hotel.repository.HotelAmenitiesRepository;
+import org.springframework.transaction.annotation.Transactional;
 import com.airbnb.user.client.impl.UserClientImpl;
 import com.airbnb.user.dto.UserDTO;
 import com.airbnb.user.model.User;
@@ -42,18 +47,24 @@ public class HotelService {
     private final PhotoClient photoClient;
     private final CloudinaryService cloudinaryService;
     private final InventoryRepository inventoryRepository;
+    private final AmenitiesRepository amenitiesRepository;
+    private final HotelAmenitiesRepository hotelAmenitiesRepository;
 
     public HotelService(HotelRepository hotelRepository,
                         RoomRepository roomRepository,
                         UserClientImpl userClient,
                         CloudinaryService cloudinaryService,
-                        InventoryRepository inventoryRepository,PhotoClient photoClient) {
+                        InventoryRepository inventoryRepository,PhotoClient photoClient,
+                        AmenitiesRepository amenitiesRepository,
+                        HotelAmenitiesRepository hotelAmenitiesRepository) {
         this.hotelRepository = hotelRepository;
         this.roomRepository = roomRepository;
         this.userClient = userClient;
         this.cloudinaryService = cloudinaryService;
         this.inventoryRepository = inventoryRepository;
         this.photoClient=photoClient;
+        this.amenitiesRepository = amenitiesRepository;
+        this.hotelAmenitiesRepository = hotelAmenitiesRepository;
     }
 
     public HotelDTO createHotel(HotelDTO dto, String hostEmail) {
@@ -74,6 +85,11 @@ public class HotelService {
         }
 
         Hotel savedHotel = hotelRepository.save(hotel);
+
+        if (dto.getAmenities() != null && !dto.getAmenities().isEmpty()) {
+            handleAmenities(dto.getAmenities(), savedHotel);
+        }
+
         return convertToDTO(savedHotel);
     }
 
@@ -89,6 +105,7 @@ public class HotelService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public HotelDTO updateHotel(UUID id, HotelDTO dto, String hostEmail) {
         UserDTO host = userClient.getUserByEmail(hostEmail);
         if(host == null) {
@@ -110,7 +127,30 @@ public class HotelService {
         }
 
         Hotel updatedHotel = hotelRepository.save(hotel);
+
+        if (dto.getAmenities() != null) {
+            hotelAmenitiesRepository.deleteByHotelId_Id(hotel.getId());
+            if (!dto.getAmenities().isEmpty()) {
+                handleAmenities(dto.getAmenities(), updatedHotel);
+            }
+        }
+
         return convertToDTO(updatedHotel);
+    }
+
+    private void handleAmenities(List<String> amenityNames, Hotel hotel) {
+        for (String amenityName : amenityNames) {
+            Amenities amenity = amenitiesRepository.findByAmenity(amenityName)
+                    .orElseGet(() -> {
+                        Amenities newAmenity = new Amenities();
+                        newAmenity.setAmenity(amenityName);
+                        return amenitiesRepository.save(newAmenity);
+                    });
+            HotelAmenities ha = new HotelAmenities();
+            ha.setHotelId(hotel);
+            ha.setAmenityId(amenity);
+            hotelAmenitiesRepository.save(ha);
+        }
     }
 
 
@@ -181,6 +221,20 @@ public class HotelService {
         return dates;
     }
 
+    public List<RoomDTO> getRoomsByHotel(UUID hotelId) {
+        hotelRepository.findById(hotelId)
+                .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with id: " + hotelId));
+        return roomRepository.findByHotelId(hotelId).stream()
+                .map(this::convertToRoomDTO)
+                .collect(Collectors.toList());
+    }
+
+    public RoomDTO getRoomById(UUID roomId) {
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + roomId));
+        return convertToRoomDTO(room);
+    }
+
     // --- Room Methods ---
 
     public RoomDTO createRoom(UUID hotelId, RoomDTO dto, String hostEmail) {
@@ -222,6 +276,8 @@ public class HotelService {
             inventories.add(inv);
             cal.add(Calendar.DAY_OF_YEAR, 1);
         }
+
+        inventoryRepository.saveAll(inventories);
 
         return convertToRoomDTO(savedRoom);
     }
@@ -290,7 +346,12 @@ public class HotelService {
             dto.setHostId(hotel.getHostId());
         }
 
-    
+        if (hotel.getHotelAmenities() != null) {
+            List<String> amenities = hotel.getHotelAmenities().stream()
+                    .map(ha -> ha.getAmenityId().getAmenity())
+                    .collect(Collectors.toList());
+            dto.setAmenities(amenities);
+        }
 
         return dto;
     }
@@ -309,4 +370,29 @@ public class HotelService {
 		});
 		return uploadPhotoList;
 	}
+
+	public List<UploadPhotoDTO> addRoomPhotos(UUID roomId, List<MultipartFile> files, String hostEmail) {
+		UserDTO host = userClient.getUserByEmail(hostEmail);
+		if (host == null) {
+			throw new ResourceNotFoundException(hostEmail);
+		}
+		Room room = roomRepository.findById(roomId)
+				.orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + roomId));
+
+		if (!room.getHotel().getHostId().equals(host.getId())) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the hotel owner can add photos to this room");
+		}
+
+		List<UploadPhotoDTO> uploadPhotoList = new ArrayList<>();
+		files.forEach((file) -> {
+			try {
+				String uploadFile = cloudinaryService.uploadFile(file);
+				uploadPhotoList.add(photoClient.createRoomPhoto(uploadFile, room.getId()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+		return uploadPhotoList;
+	}
 }
+
