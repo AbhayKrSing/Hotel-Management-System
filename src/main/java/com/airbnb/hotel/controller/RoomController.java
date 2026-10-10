@@ -77,5 +77,21 @@ public class RoomController {
         List<Inventory> inventoryList = inventoryService.getRoomInventory(roomId, start, end);
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Room inventory fetched successfully", inventoryList));
     }
+
+    @PutMapping("/rooms/{roomId}")
+    public ResponseEntity<ApiResponse<RoomDTO>> updateRoom(@PathVariable UUID roomId, @RequestBody RoomDTO roomDTO) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        verifyHostRole(auth);
+        RoomDTO updated = hotelService.updateRoom(roomId, roomDTO, auth.getName());
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Room updated successfully", updated));
+    }
+
+    @DeleteMapping("/rooms/{roomId}")
+    public ResponseEntity<ApiResponse<Void>> deleteRoom(@PathVariable UUID roomId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        verifyHostRole(auth);
+        hotelService.deleteRoom(roomId, auth.getName());
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Room deleted successfully", null));
+    }
 }
 

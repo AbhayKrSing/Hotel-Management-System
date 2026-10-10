@@ -61,7 +61,8 @@ public class GuestReview extends FullyAuditableEntity {
 	this.hostResponse = hostResponse;
   }
 
-  @JoinColumn(name = "C_Hotel_Id")
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name = "C_Hotel_Id", columnDefinition = "VARCHAR(36)")
   public UUID getHotelId() {
 	return hotelId;
   }
@@ -69,7 +70,8 @@ public class GuestReview extends FullyAuditableEntity {
 	this.hotelId = hotelId;
   }
 
-  @JoinColumn(name ="C_User_Id")
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name ="C_User_Id", columnDefinition = "VARCHAR(36)")
   public UUID getUserId() {
 	return userId;
   }
@@ -77,7 +79,8 @@ public class GuestReview extends FullyAuditableEntity {
 	this.userId = userId;
   }
   
-  @JoinColumn(name = "C_Booking_Id", unique = true)
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name = "C_Booking_Id", unique = true, columnDefinition = "VARCHAR(36)")
   public UUID getBookingId() {
 	return bookingId;
   }

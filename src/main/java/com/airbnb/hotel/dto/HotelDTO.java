@@ -20,11 +20,14 @@ public class HotelDTO {
 	private String hostName;
 	private String hostEmail;
 	private String mainPhotoUrl;
+	private List<String> photos;
 	private String cancellationPolicy;
 	private String checkInTime;
 	private String checkOutTime;
 	private Integer starRating;
 	private Boolean isVerified;
+	private String hotelType;
+	private Double startingPrice;
 	private List<String> amenities;
 	private Double latitude;
 	private Double longitude;
@@ -135,6 +138,14 @@ public class HotelDTO {
 		this.mainPhotoUrl = mainPhotoUrl;
 	}
 
+	public List<String> getPhotos() {
+		return photos;
+	}
+
+	public void setPhotos(List<String> photos) {
+		this.photos = photos;
+	}
+
 	public String getCancellationPolicy() {
 		return cancellationPolicy;
 	}
@@ -173,6 +184,22 @@ public class HotelDTO {
 
 	public void setIsVerified(Boolean isVerified) {
 		this.isVerified = isVerified;
+	}
+
+	public String getHotelType() {
+		return hotelType;
+	}
+
+	public void setHotelType(String hotelType) {
+		this.hotelType = hotelType;
+	}
+
+	public Double getStartingPrice() {
+		return startingPrice;
+	}
+
+	public void setStartingPrice(Double startingPrice) {
+		this.startingPrice = startingPrice;
 	}
 
 	public List<String> getAmenities() {

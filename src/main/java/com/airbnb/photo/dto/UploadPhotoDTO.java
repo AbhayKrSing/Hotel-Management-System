@@ -4,9 +4,17 @@ import java.util.UUID;
 
 public class UploadPhotoDTO {
 
+	private UUID id;
 	private UUID hotelId;
 	private String photoUrl;
 	private UUID roomId;
+
+	public UUID getId() {
+		return id;
+	}
+	public void setId(UUID id) {
+		this.id = id;
+	}
 	public UUID getHotelId() {
 		return hotelId;
 	}

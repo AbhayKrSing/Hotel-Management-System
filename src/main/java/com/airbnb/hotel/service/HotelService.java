@@ -256,6 +256,7 @@ public class HotelService {
         room.setStatus(HotelStatus.ACTIVE);
         room.setNoOfUnits(dto.getNoOfUnits());
         room.setPricePerNight(dto.getPricePerNight());
+        room.setAmenities(dto.getAmenities());
 
         Room savedRoom = roomRepository.save(room);
         // Pre-populate inventory for next 90 days
@@ -296,7 +297,51 @@ public class HotelService {
         dto.setStatus(room.getStatus());
         dto.setNoOfUnits(room.getNoOfUnits());
         dto.setPricePerNight(room.getPricePerNight());
+        dto.setAmenities(room.getAmenities());
         return dto;
+    }
+
+    @Transactional
+    public RoomDTO updateRoom(UUID roomId, RoomDTO dto, String hostEmail) {
+        UserDTO host = userClient.getUserByEmail(hostEmail);
+        if (host == null) {
+            throw new ResourceNotFoundException(hostEmail);
+        }
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + roomId));
+
+        if (!room.getHotel().getHostId().equals(host.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the owner can edit rooms of this hotel");
+        }
+
+        if (dto.getRoomTypes() != null) room.setRoomTypes(dto.getRoomTypes());
+        if (dto.getDescription() != null) room.setDescription(dto.getDescription());
+        if (dto.getGuestCapacity() != null) room.setGuestCapacity(dto.getGuestCapacity());
+        if (dto.getBedType() != null) room.setBedType(dto.getBedType());
+        if (dto.getNoOfUnits() != null) room.setNoOfUnits(dto.getNoOfUnits());
+        if (dto.getPricePerNight() != null) room.setPricePerNight(dto.getPricePerNight());
+        if (dto.getAmenities() != null) room.setAmenities(dto.getAmenities());
+
+        Room updatedRoom = roomRepository.save(room);
+        return convertToRoomDTO(updatedRoom);
+    }
+
+    @Transactional
+    public void deleteRoom(UUID roomId, String hostEmail) {
+        UserDTO host = userClient.getUserByEmail(hostEmail);
+        if (host == null) {
+            throw new ResourceNotFoundException(hostEmail);
+        }
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new ResourceNotFoundException("Room not found with id: " + roomId));
+
+        if (!room.getHotel().getHostId().equals(host.getId())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the owner can delete rooms of this hotel");
+        }
+
+        roomRepository.delete(room);
     }
 
     // --- Helper Mappers ---
@@ -316,6 +361,8 @@ public class HotelService {
         hotel.setIsVerified(dto.getIsVerified());
         hotel.setLatitude(dto.getLatitude());
         hotel.setLongitude(dto.getLongitude());
+        hotel.setHotelType(dto.getHotelType());
+        hotel.setStartingPrice(dto.getStartingPrice());
     }
 
     private HotelDTO convertToDTO(Hotel hotel) {
@@ -339,6 +386,8 @@ public class HotelService {
         dto.setIsVerified(hotel.getIsVerified());
         dto.setLatitude(hotel.getLatitude());
         dto.setLongitude(hotel.getLongitude());
+        dto.setHotelType(hotel.getHotelType());
+        dto.setStartingPrice(hotel.getStartingPrice());
         dto.setCreatedAt(hotel.getCreatedAt());
         dto.setUpdatedAt(hotel.getUpdatedAt());
 
@@ -353,22 +402,55 @@ public class HotelService {
             dto.setAmenities(amenities);
         }
 
+        // Populate photos from the photo service
+        try {
+            List<UploadPhotoDTO> hotelPhotos = photoClient.getHotelPhotos(hotel.getId());
+            if (hotelPhotos != null && !hotelPhotos.isEmpty()) {
+                List<String> photoUrls = hotelPhotos.stream()
+                        .map(UploadPhotoDTO::getPhotoUrl)
+                        .collect(Collectors.toList());
+                dto.setPhotos(photoUrls);
+                dto.setMainPhotoUrl(photoUrls.get(0));
+            }
+        } catch (Exception e) {
+            // Photos are non-critical; don't fail the whole DTO conversion
+        }
+
         return dto;
     }
 
 	public List<UploadPhotoDTO> addHotelPhotos(UUID id, List<MultipartFile> files, String name) {
-		List<UploadPhotoDTO> uploadPhotoList=new ArrayList<>();
+		List<UploadPhotoDTO> uploadPhotoList = new ArrayList<>();
 		Hotel hotelById = hotelRepository.findById(id)
 			    .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with id: " + id));
-		files.forEach((file)->{
+		files.forEach((file) -> {
 			try {
 				String uploadFile = cloudinaryService.uploadFile(file);
-				uploadPhotoList.add(photoClient.createHotelPhoto(uploadFile, hotelById.getId())) ;
+				uploadPhotoList.add(photoClient.createHotelPhoto(uploadFile, hotelById.getId()));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		});
 		return uploadPhotoList;
+	}
+
+	public List<UploadPhotoDTO> getHotelPhotos(UUID id) {
+		hotelRepository.findById(id)
+			    .orElseThrow(() -> new ResourceNotFoundException("Hotel not found with id: " + id));
+		return photoClient.getHotelPhotos(id);
+	}
+
+	public void deleteHotelPhoto(UUID hotelId, UUID photoId, String hostEmail) {
+		UserDTO host = userClient.getUserByEmail(hostEmail);
+		if (host == null) {
+			throw new ResourceNotFoundException(hostEmail);
+		}
+		Hotel hotel = hotelRepository.findById(hotelId)
+				.orElseThrow(() -> new ResourceNotFoundException("Hotel not found with id: " + hotelId));
+		if (!hotel.getHostId().equals(host.getId())) {
+			throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Only the owner can delete photos of this hotel");
+		}
+		photoClient.deletePhoto(photoId);
 	}
 
 	public List<UploadPhotoDTO> addRoomPhotos(UUID roomId, List<MultipartFile> files, String hostEmail) {

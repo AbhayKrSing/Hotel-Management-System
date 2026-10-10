@@ -40,6 +40,7 @@ public class Booking extends FullyAuditableEntity {
   private BigDecimal totalPrice;
   private Integer guestCount;
   private BookingStatus bookingStatus;
+  private LocalDateTime expiresAt;
   private List<BookingRoom> bookingRooms;
   private List<BookingOccupant> bookingOccupants;
   private List<Payment> payments;
@@ -56,6 +57,8 @@ public class Booking extends FullyAuditableEntity {
     this.id = id;
   }
 
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name = "C_User_Id", columnDefinition = "VARCHAR(36)")
   public UUID getUserId() {
     return userId;
   }
@@ -64,7 +67,8 @@ public class Booking extends FullyAuditableEntity {
     this.userId = userId;
   }
 
-  @JoinColumn(name = "C_Hotel_Id")
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name = "C_Hotel_Id", columnDefinition = "VARCHAR(36)")
   public UUID getHotelId() {
     return hotelId;
   }
@@ -117,6 +121,15 @@ public class Booking extends FullyAuditableEntity {
 
   public void setBookingStatus(BookingStatus bookingStatus) {
     this.bookingStatus = bookingStatus;
+  }
+
+  @Column(name = "Dt_Expires_At")
+  public LocalDateTime getExpiresAt() {
+    return expiresAt;
+  }
+
+  public void setExpiresAt(LocalDateTime expiresAt) {
+    this.expiresAt = expiresAt;
   }
 
   @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, fetch = FetchType.LAZY)

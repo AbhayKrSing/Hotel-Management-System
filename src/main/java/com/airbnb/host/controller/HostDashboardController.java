@@ -66,8 +66,8 @@ public class HostDashboardController {
 
     /**
      * PUT /api/host/bookings/{id}/status
-     * Host accepts (CONFIRMED) or rejects (CANCELLED) a booking.
-     * Body: { "status": "CONFIRMED" }
+     * Host may reject a booking (CANCELLED) or update lifecycle statuses (CHECKIN/CHECKOUT).
+     * CONFIRMED is not allowed here — confirmation happens only after successful payment.
      */
     @PutMapping("/bookings/{id}/status")
     public ResponseEntity<ApiResponse<BookingDTO>> updateBookingStatus(

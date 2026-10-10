@@ -15,6 +15,7 @@ public class BookingDTO {
     private BigDecimal totalPrice;
     private Integer guestCount;
     private BookingStatus bookingStatus;
+    private LocalDateTime expiresAt;
     private List<BookingRoomDTO> bookingRooms;
     private List<BookingOccupantDTO> bookingOccupants;
 
@@ -66,6 +67,8 @@ public class BookingDTO {
     public void setGuestCount(Integer guestCount) { this.guestCount = guestCount; }
     public BookingStatus getBookingStatus() { return bookingStatus; }
     public void setBookingStatus(BookingStatus bookingStatus) { this.bookingStatus = bookingStatus; }
+    public LocalDateTime getExpiresAt() { return expiresAt; }
+    public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
     public List<BookingRoomDTO> getBookingRooms() { return bookingRooms; }
     public void setBookingRooms(List<BookingRoomDTO> bookingRooms) { this.bookingRooms = bookingRooms; }
     public List<BookingOccupantDTO> getBookingOccupants() { return bookingOccupants; }

@@ -78,6 +78,20 @@ public class HotelController {
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Photos uploaded successfully", updated));
     }
 
+    @GetMapping("/{id}/photos")
+    public ResponseEntity<ApiResponse<List<UploadPhotoDTO>>> getHotelPhotos(@PathVariable UUID id) {
+        List<UploadPhotoDTO> photos = hotelService.getHotelPhotos(id);
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Photos fetched successfully", photos));
+    }
+
+    @DeleteMapping("/{id}/photos/{photoId}")
+    public ResponseEntity<ApiResponse<Void>> deleteHotelPhoto(@PathVariable UUID id, @PathVariable UUID photoId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        verifyHostRole(auth);
+        hotelService.deleteHotelPhoto(id, photoId, auth.getName());
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK.value(), "Photo deleted successfully", null));
+    }
+
     @GetMapping("/{id}/rooms")
     public ResponseEntity<ApiResponse<List<RoomDTO>>> getHotelRooms(@PathVariable UUID id) {
         List<RoomDTO> rooms = hotelService.getRoomsByHotel(id);

@@ -13,7 +13,9 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -41,6 +43,7 @@ public class Room extends FullyAuditableEntity {
 	private HotelStatus status;
 	private Integer noOfUnits;
 	private BigDecimal pricePerNight;
+	private List<String> amenities;
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
@@ -119,6 +122,14 @@ public class Room extends FullyAuditableEntity {
 		this.pricePerNight = pricePerNight;
 	}
 
+	@ElementCollection
+	@CollectionTable(name = "room_amenities", joinColumns = @JoinColumn(name = "C_Room_Id"))
+	@Column(name = "C_Amenity")
+	public List<String> getAmenities() {
+		return amenities;
+	}
+	public void setAmenities(List<String> amenities) {
+		this.amenities = amenities;
+	}
 
-	
  }

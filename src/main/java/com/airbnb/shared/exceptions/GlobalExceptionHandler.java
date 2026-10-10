@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.airbnb.shared.dto.ApiResponse;
@@ -109,6 +110,25 @@ public class GlobalExceptionHandler {
 	                 request.getDescription(false).replace("uri=", "")
 	         );
 	         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+	     }
+
+	     // ===== Explicit HTTP status exceptions (e.g. payment window expired) =====
+	     @ExceptionHandler(ResponseStatusException.class)
+	     public ResponseEntity<ApiResponse<Void>> handleResponseStatus(
+	             ResponseStatusException ex,
+	             WebRequest request) {
+
+	         HttpStatus status = HttpStatus.resolve(ex.getStatusCode().value());
+	         if (status == null) {
+	             status = HttpStatus.BAD_REQUEST;
+	         }
+	         String message = ex.getReason() != null ? ex.getReason() : status.getReasonPhrase();
+	         ApiResponse<Void> response = ApiResponse.error(
+	                 status.value(),
+	                 message,
+	                 request.getDescription(false).replace("uri=", "")
+	         );
+	         return ResponseEntity.status(status).body(response);
 	     }
 
 	     // ===== 500 - All Other Exceptions =====

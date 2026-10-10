@@ -38,7 +38,8 @@ public class Photo extends AuditableEntry {
 	this.id = id;
   }
   
-  @JoinColumn(name = "C_Room_Id")
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name = "C_Room_Id", columnDefinition = "VARCHAR(36)")
   public UUID getRoomId() {
 	return roomId;
   }
@@ -46,7 +47,8 @@ public class Photo extends AuditableEntry {
 	this.roomId = roomId;
   }
   
-  @JoinColumn(name = "C_Hotel_Id")
+  @JdbcTypeCode(SqlTypes.VARCHAR)
+  @Column(name = "C_Hotel_Id", columnDefinition = "VARCHAR(36)")
   public UUID getHotelId() {
 	return hotelId;
   }

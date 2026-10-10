@@ -19,6 +19,7 @@ import com.airbnb.shared.exceptions.ResourceNotFoundException;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
@@ -28,6 +29,9 @@ import java.util.stream.Collectors;
 
 @Service
 public class BookingServiceImpl implements BookingService {
+
+    /** Temporary inventory hold window for unpaid bookings. */
+    private static final int PAYMENT_HOLD_MINUTES = 15;
 
     private final BookingRepository bookingRepository;
     private final HotelRepository hotelRepository;
@@ -48,6 +52,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingDTO createBooking(BookingDTO dto, String guestEmail) {
         User guest = userRepository.findByEmail(guestEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("Guest user not found"));
@@ -67,6 +72,7 @@ public class BookingServiceImpl implements BookingService {
         booking.setCheckOutDate(dto.getCheckOutDate());
         booking.setGuestCount(dto.getGuestCount());
         booking.setBookingStatus(BookingStatus.PENDING);
+        booking.setExpiresAt(LocalDateTime.now().plusMinutes(PAYMENT_HOLD_MINUTES));
 
         BigDecimal totalPrice = BigDecimal.ZERO;
         List<BookingRoom> bookingRooms = new ArrayList<>();
@@ -140,6 +146,7 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingDTO cancelBooking(UUID bookingId, String userEmail) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -160,35 +167,70 @@ public class BookingServiceImpl implements BookingService {
           throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized to cancel this booking");
       }
 
+        return convertToDTO(doCancelAndReleaseInventory(booking));
+    }
+
+    @Override
+    @Transactional
+    public BookingDTO cancelAndReleaseInventory(UUID bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + bookingId));
+        return convertToDTO(doCancelAndReleaseInventory(booking));
+    }
+
+    @Override
+    @Transactional
+    public int expireUnpaidBookings() {
+        List<Booking> expired = bookingRepository.findByBookingStatusAndExpiresAtBefore(
+                BookingStatus.PENDING, LocalDateTime.now());
+
+        int expiredCount = 0;
+        for (Booking booking : expired) {
+            // Re-load to avoid cancelling a booking that was confirmed after the query ran
+            Booking fresh = bookingRepository.findById(booking.getId()).orElse(null);
+            if (fresh == null || fresh.getBookingStatus() != BookingStatus.PENDING) {
+                continue;
+            }
+            doCancelAndReleaseInventory(fresh);
+            expiredCount++;
+        }
+        return expiredCount;
+    }
+
+    /**
+     * Marks booking CANCELLED and restores held inventory. Idempotent if already cancelled.
+     */
+    private Booking doCancelAndReleaseInventory(Booking booking) {
         if (booking.getBookingStatus() == BookingStatus.CANCELLED) {
-            return convertToDTO(booking);
+            return booking;
         }
 
         booking.setBookingStatus(BookingStatus.CANCELLED);
 
-        // Release inventory
         List<Date> bookingDates = getDatesBetween(booking.getCheckInDate(), booking.getCheckOutDate());
         List<Inventory> inventoriesToSave = new ArrayList<>();
 
-        for (BookingRoom br : booking.getBookingRooms()) {
-            for (Date date : bookingDates) {
-                Optional<Inventory> invOpt = inventoryRepository.findByRoomIdAndDate(br.getRoomId(), date);
-                if (invOpt.isPresent()) {
-                    Inventory inv = invOpt.get();
-                    inv.setAvailableUnits(inv.getAvailableUnits() + br.getUnitsBooked());
-                    inventoriesToSave.add(inv);
+        if (booking.getBookingRooms() != null) {
+            for (BookingRoom br : booking.getBookingRooms()) {
+                for (Date date : bookingDates) {
+                    Optional<Inventory> invOpt = inventoryRepository.findByRoomIdAndDate(br.getRoomId(), date);
+                    if (invOpt.isPresent()) {
+                        Inventory inv = invOpt.get();
+                        inv.setAvailableUnits(inv.getAvailableUnits() + br.getUnitsBooked());
+                        inventoriesToSave.add(inv);
+                    }
                 }
             }
         }
 
         inventoryRepository.saveAll(inventoriesToSave);
-        Booking saved = bookingRepository.save(booking);
-        return convertToDTO(saved);
+        return bookingRepository.save(booking);
     }
 
     @Override
+    @Transactional
     public BookingDTO updateBookingStatus(UUID bookingId, BookingStatus status, String hostOrAdminEmail) {
-        User user = userRepository.findByEmail(hostOrAdminEmail)
+        userRepository.findByEmail(hostOrAdminEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Booking booking = bookingRepository.findById(bookingId)
@@ -201,10 +243,16 @@ public class BookingServiceImpl implements BookingService {
 //            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Unauthorized to update booking status");
 //        }
 
-        if (status == BookingStatus.CANCELLED && booking.getBookingStatus() != BookingStatus.CANCELLED) {
-            return cancelBooking(bookingId, hostOrAdminEmail);
+        if (status == BookingStatus.CONFIRMED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Bookings can only be confirmed after successful payment");
         }
 
+        if (status == BookingStatus.CANCELLED) {
+            return cancelAndReleaseInventory(bookingId);
+        }
+
+        // Hosts may move lifecycle statuses (e.g. CHECKIN/CHECKOUT) but not confirm unpaid bookings
         booking.setBookingStatus(status);
         Booking saved = bookingRepository.save(booking);
         return convertToDTO(saved);
@@ -268,6 +316,7 @@ public class BookingServiceImpl implements BookingService {
         dto.setTotalPrice(booking.getTotalPrice());
         dto.setGuestCount(booking.getGuestCount());
         dto.setBookingStatus(booking.getBookingStatus());
+        dto.setExpiresAt(booking.getExpiresAt());
 
         if (booking.getBookingRooms() != null) {
             dto.setBookingRooms(booking.getBookingRooms().stream().map(br -> {

@@ -16,6 +16,7 @@ public class RoomDTO {
     private Integer noOfUnits;
     private BigDecimal pricePerNight;
     private List<String> photoUrls;
+    private List<String> amenities;
 
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -46,4 +47,7 @@ public class RoomDTO {
 
     public List<String> getPhotoUrls() { return photoUrls; }
     public void setPhotoUrls(List<String> photoUrls) { this.photoUrls = photoUrls; }
+
+    public List<String> getAmenities() { return amenities; }
+    public void setAmenities(List<String> amenities) { this.amenities = amenities; }
 }

@@ -50,6 +50,8 @@ public class Hotel extends FullyAuditableEntity {
 	private Boolean isVerified;
 	private Double latitude;
 	private Double longitude;
+	private String hotelType;
+	private Double startingPrice;
 	private List<String> rules;
 	private HotelStatus status;
 	private UUID hostId;
@@ -176,6 +178,22 @@ public class Hotel extends FullyAuditableEntity {
 		this.longitude = longitude;
 	}
 
+	@Column(name ="C_Hotel_Type")
+	public String getHotelType() {
+		return hotelType;
+	}
+	public void setHotelType(String hotelType) {
+		this.hotelType = hotelType;
+	}
+
+	@Column(name ="N_Starting_Price")
+	public Double getStartingPrice() {
+		return startingPrice;
+	}
+	public void setStartingPrice(Double startingPrice) {
+		this.startingPrice = startingPrice;
+	}
+
 	@ElementCollection
 	@CollectionTable(name = "hotel_rules", joinColumns = @JoinColumn(name = "C_Hotel_Id"))
 	@Column(name = "C_Rule")
@@ -195,7 +213,8 @@ public class Hotel extends FullyAuditableEntity {
 	}
 	
 
-	@JoinColumn(name = "C_Host_Id")
+	@JdbcTypeCode(SqlTypes.VARCHAR)
+	@Column(name = "C_Host_Id", columnDefinition = "VARCHAR(36)")
 	public UUID getHostId() {
 		return hostId;
 	}
